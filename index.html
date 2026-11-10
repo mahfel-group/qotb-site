@@ -1278,7 +1278,11 @@ function openQotbLightbox(images,index){
  };
  modal._qotbPreviousOverflow=document.body.style.overflow;
  modal._qotbCleanup=close;
- paint();
+ photo.src=list[active];
+ photo.alt='تصویر '+(active+1)+' از '+list.length;
+ count.textContent=(active+1)+' / '+list.length;
+ prev.hidden=list.length<2;
+ next.hidden=list.length<2;
  modal.classList.add('is-open');
  document.body.style.overflow='hidden';
  document.addEventListener('keydown',keys);
