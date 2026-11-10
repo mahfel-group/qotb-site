@@ -1065,11 +1065,13 @@ function chooseText(el){
  if(selected&&selected!==el){selected.contentEditable='false';selected.classList.remove('qotb-edit-selected')}
  selected=el;selectedKind='text';selectedValue=el.textContent;el.contentEditable='true';el.focus();el.classList.add('qotb-edit-selected');document.getElementById('qa-hint').textContent='متن را همین‌جا تغییر بده، سپس ذخیره پیش‌نویس یا انتشار را بزن.';
 }
-function chooseImage(img){if(selected&&selected!==img){selected.contentEditable='false';selected.classList.remove('qotb-edit-selected')}selected=img;selectedKind='image';selectedValue='';selected.classList.add('qotb-edit-selected');document.getElementById('qa-hint').textContent='یک عکس از دستگاه انتخاب کن.';file.click()}
+function chooseImage(target){if(selected&&selected!==target){selected.contentEditable='false';selected.classList.remove('qotb-edit-selected')}selected=target;selectedKind='image';selectedValue='';selected.classList.add('qotb-edit-selected');document.getElementById('qa-hint').textContent='یک عکس از دستگاه انتخاب کن.';file.click()}
 document.addEventListener('click',function(e){
  if(!manage||tools.contains(e.target)||login.contains(e.target)||!tools.style.display||tools.style.display==='none')return;
  const img=e.target.closest&&e.target.closest('img');
  if(img){e.preventDefault();e.stopPropagation();chooseImage(img);return}
+ const imageBox=e.target.closest&&e.target.closest('.product-detail-photo,.catalog-product-image');
+ if(imageBox){e.preventDefault();e.stopPropagation();chooseImage(imageBox);return}
  const target=findTextTarget(e.target);
  if(target){e.preventDefault();e.stopPropagation();chooseText(target)}
 },true);
@@ -1077,7 +1079,7 @@ document.addEventListener('mouseover',function(e){if(!manage||tools.style.displa
 document.addEventListener('mouseout',function(e){const t=findTextTarget(e.target);if(t)t.classList.remove('qotb-edit-hover')},true);
 file.addEventListener('change',async()=>{
  const f=file.files&&file.files[0];if(!f||!selected)return;
- try{const dataUrl=await compressImage(f);selected.src=dataUrl;selectedValue=dataUrl;document.getElementById('qa-hint').textContent='عکس انتخاب شد؛ برای ثبت، ذخیره یا انتشار را بزن.'}
+ try{const dataUrl=await compressImage(f);if(selected.tagName==='IMG'){selected.src=dataUrl}else{selected.textContent='';let preview=selected.querySelector(':scope > img[data-qotb-managed]');if(!preview){preview=document.createElement('img');preview.dataset.qotbManaged='1';preview.alt='تصویر محصول';preview.style.cssText='display:block;width:100%;height:100%;max-height:420px;object-fit:contain';selected.appendChild(preview)}preview.src=dataUrl}selectedValue=dataUrl;document.getElementById('qa-hint').textContent='عکس انتخاب شد؛ برای ثبت، ذخیره یا انتشار را بزن.'}
  catch(e){document.getElementById('qa-hint').textContent='خواندن عکس ناموفق بود.'}
  file.value='';
 });
@@ -1097,7 +1099,7 @@ async function loadPublic(){
 }
 function applyPublished(){
  if(!publishedItems.length)return;
- for(const item of publishedItems){const d=item.data||{};if(!d.selector||!d.value)continue;let el;try{el=document.querySelector(d.selector)}catch(_){continue}if(!el)continue;if(d.kind==='image'&&el.tagName==='IMG')el.src=d.value;else if(d.kind==='text'&&!el.isContentEditable)el.textContent=d.value}
+ for(const item of publishedItems){const d=item.data||{};if(!d.selector||!d.value)continue;let el;try{el=document.querySelector(d.selector)}catch(_){continue}if(!el)continue;if(d.kind==='image'){if(el.tagName==='IMG')el.src=d.value;else{let img=el.querySelector(':scope > img[data-qotb-managed]');if(!img){el.textContent='';img=document.createElement('img');img.dataset.qotbManaged='1';img.alt='تصویر محصول';img.style.cssText='display:block;width:100%;height:100%;max-height:420px;object-fit:contain';el.appendChild(img)}img.src=d.value}}else if(d.kind==='text'&&!el.isContentEditable)el.textContent=d.value}
 }
 document.addEventListener('DOMContentLoaded',loadPublic);
 const observer=new MutationObserver(()=>{if(window.__qotbApplyTimer)clearTimeout(window.__qotbApplyTimer);window.__qotbApplyTimer=setTimeout(applyPublished,180)});
