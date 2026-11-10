@@ -1106,8 +1106,24 @@ const API='https://www.mirzaie-qotb.ir';
 const API_FALLBACK='https://api.mirzaie-qotb.ir';
 const API_LAST_FALLBACK='https://qotb-admin.qotb-panel.workers.dev';
 async function apiFetch(path,options={}){
+ const bases=[API,API_FALLBACK,API_LAST_FALLBACK];
+ const method=(options.method||'GET').toUpperCase();
+ if(path==='/api/public-content'&&method==='GET'){
+  const controllers=bases.map(()=>new AbortController());
+  const timers=controllers.map(controller=>setTimeout(()=>controller.abort(),4500));
+  try{
+   const response=await Promise.any(bases.map(async(base,index)=>{
+    const result=await fetch(base+path,{...options,signal:controllers[index].signal});
+    if(!result.ok)throw new Error('HTTP '+result.status+' از '+base);
+    return result;
+   }));
+   controllers.forEach((controller,index)=>{if(!controller.signal.aborted)controller.abort()});
+   return response;
+  }catch(e){throw e.errors?.[0]||e}
+  finally{timers.forEach(clearTimeout)}
+ }
  let lastError=null;
- for(const base of [API,API_FALLBACK,API_LAST_FALLBACK]){
+ for(const base of bases){
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),4500);
   try{
