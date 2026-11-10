@@ -1078,9 +1078,10 @@ function chooseText(el){
 function renderImageList(target,images,admin){
  if(target.classList.contains('blank-gallery')){
   target.classList.add('qotb-image-gallery');
-  /* هشت خانهٔ اصلی گالری را نگه می‌داریم؛ فقط محتوای داخل هر خانه عوض می‌شود. */
+  /* حداقل ۸ جایگاه اولیه حفظ می‌شوند و به تعداد عکس‌های افزوده‌شده جایگاه ساخته می‌شود. */
   const slots=Array.from(target.children).filter(el=>el.classList.contains('blank'));
-  while(slots.length<8){
+  const requiredSlots=Math.max(8,images.length);
+  while(slots.length<requiredSlots){
    const slot=document.createElement('div');
    slot.className='blank';
    slot.textContent='محل عکس';
@@ -1088,8 +1089,7 @@ function renderImageList(target,images,admin){
    target.insertBefore(slot,addButton||null);
    slots.push(slot);
   }
-  slots.slice(8).forEach(slot=>slot.remove());
-  for(let index=0;index<8;index++){
+  for(let index=0;index<slots.length;index++){
    const slot=slots[index];
    slot.classList.add('qotb-gallery-slot');
    slot.style.position='relative';
@@ -1189,7 +1189,6 @@ file.addEventListener('change',async()=>{
  try{
   if(kind==='image-list'){
    const current=Array.isArray(selectedValue)?selectedValue.slice():[];
-   if(current.length+files.length>8)throw new Error('برای هر گالری یا محصول حداکثر ۸ عکس می‌توانی ثبت کنی.');
    for(const f of files)current.push(await compressImage(f));
    if(selected!==target)throw new Error('صفحهٔ مقصد تغییر کرده؛ دوباره گالری را انتخاب کن.');
    selectedValue=current;renderImageList(target,current,true);
