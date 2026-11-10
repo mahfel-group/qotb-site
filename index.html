@@ -1067,9 +1067,25 @@ function chooseText(el){
  selected=el;selectedKind='text';selectedValue=el.textContent;el.contentEditable='true';el.focus();el.classList.add('qotb-edit-selected');document.getElementById('qa-hint').textContent='متن را همین‌جا تغییر بده، سپس ذخیره پیش‌نویس یا انتشار را بزن.';
 }
 function renderImageList(target,images,admin){
+ if(target.classList.contains('blank-gallery')){
+  target.classList.add('qotb-image-gallery');
+  const slots=[...target.querySelectorAll(':scope > .blank')];
+  while(slots.length<8){const slot=document.createElement('div');slot.className='blank';slot.textContent='محل عکس';target.insertBefore(slot,target.querySelector(':scope > .qotb-inline-add')) ;slots.push(slot)}
+  slots.forEach((slot,index)=>{
+   slot.replaceChildren();
+   slot.classList.add('qotb-gallery-slot');
+   if(images[index]){
+    const photo=document.createElement('img');photo.src=images[index];photo.alt='تصویر گالری '+(index+1);photo.style.cssText='width:100%;height:100%;min-height:170px;object-fit:cover;border-radius:16px';slot.appendChild(photo);
+    if(admin){const del=document.createElement('button');del.type='button';del.textContent='×';del.title='حذف عکس';del.style.cssText='position:absolute;top:6px;right:6px;z-index:2;border:0;border-radius:50%;background:#b42318;color:#fff;width:26px;height:26px';del.addEventListener('click',ev=>{ev.stopPropagation();images.splice(index,1);selectedValue=images.slice();renderImageList(target,images,true)});slot.style.position='relative';slot.appendChild(del)}
+   }else{slot.textContent='محل عکس';slot.style.position='';}
+  });
+  let add=target.querySelector(':scope > .qotb-inline-add');
+  if(admin&&!add){add=document.createElement('button');add.type='button';add.className='qotb-inline-add';add.textContent='＋ افزودن عکس';add.addEventListener('click',ev=>{ev.stopPropagation();selected=target;selectedKind='image-list';selectedValue=images.slice();openFilePicker()});target.appendChild(add)}
+  if(!admin&&add)add.remove();
+  return;
+ }
  target.innerHTML='';target.classList.add('qotb-image-gallery');
  if(!images.length){const empty=document.createElement('div');empty.className='qotb-gallery-empty';empty.textContent=admin?'برای افزودن عکس، دکمه افزودن عکس را بزن.':'تصویری ثبت نشده است.';target.appendChild(empty)}
- else if(target.classList.contains('blank-gallery')){images.forEach((src,index)=>{const wrap=document.createElement('div');wrap.className='qotb-gallery-tile';const photo=document.createElement('img');photo.src=src;photo.alt='تصویر گالری '+(index+1);wrap.appendChild(photo);if(admin){const del=document.createElement('button');del.type='button';del.textContent='×';del.title='حذف عکس';del.addEventListener('click',ev=>{ev.stopPropagation();images.splice(index,1);selectedValue=images.slice();renderImageList(target,images,true)});wrap.appendChild(del)}target.appendChild(wrap)})}
  else{
   const main=document.createElement('img');main.className='qotb-gallery-main';main.src=images[0];main.alt='تصویر محصول';target.appendChild(main);
   if(images.length>1){const thumbs=document.createElement('div');thumbs.className='qotb-gallery-thumbs';images.forEach((src,index)=>{const wrap=document.createElement('div');wrap.className='qotb-thumb-wrap';const thumb=document.createElement('img');thumb.src=src;thumb.alt='تصویر '+(index+1);thumb.addEventListener('click',()=>main.src=src);wrap.appendChild(thumb);if(admin){const del=document.createElement('button');del.type='button';del.textContent='×';del.title='حذف عکس';del.addEventListener('click',ev=>{ev.stopPropagation();images.splice(index,1);selectedValue=images.slice();renderImageList(target,images,true)});wrap.appendChild(del)}thumbs.appendChild(wrap)});target.appendChild(thumbs)}
@@ -1098,10 +1114,24 @@ document.addEventListener('click',function(e){
 document.addEventListener('mouseover',function(e){if(!manage||tools.style.display==='none')return;const t=findTextTarget(e.target);if(t&&!t.classList.contains('qotb-edit-selected'))t.classList.add('qotb-edit-hover')},true);
 document.addEventListener('mouseout',function(e){const t=findTextTarget(e.target);if(t)t.classList.remove('qotb-edit-hover')},true);
 file.addEventListener('change',async()=>{
- const files=[...(file.files||[])];if(!files.length||!selected)return;
- try{if(selectedKind==='image-list'){const current=Array.isArray(selectedValue)?selectedValue.slice():[];if(current.length+files.length>8)throw new Error('برای هر گالری یا محصول حداکثر ۸ عکس می‌توانی ثبت کنی.');for(const f of files){current.push(await compressImage(f))}selectedValue=current;renderImageList(selected,current,true);document.getElementById('qa-hint').textContent=current.length+' عکس آماده ثبت است؛ ذخیره یا انتشار را بزن.'}else{const dataUrl=await compressImage(files[0]);if(selected.tagName==='IMG')selected.src=dataUrl;else{selected.textContent='';let preview=selected.querySelector(':scope > img[data-qotb-managed]');if(!preview){preview=document.createElement('img');preview.dataset.qotbManaged='1';preview.alt='تصویر محصول';preview.style.cssText='display:block;width:100%;height:100%;max-height:420px;object-fit:contain';selected.appendChild(preview)}preview.src=dataUrl}selectedValue=dataUrl;document.getElementById('qa-hint').textContent='عکس انتخاب شد؛ برای ثبت، ذخیره یا انتشار را بزن.'}}
- catch(e){document.getElementById('qa-hint').textContent=e.message||'خواندن عکس ناموفق بود.'}
- file.value='';
+ const files=[...(file.files||[])],target=selected,kind=selectedKind;
+ if(!files.length||!target){document.getElementById('qa-hint').textContent='فایلی دریافت نشد؛ دوباره عکس را انتخاب کن.';file.value='';return}
+ document.getElementById('qa-hint').textContent='در حال آماده‌سازی عکس…';
+ try{
+  if(kind==='image-list'){
+   const current=Array.isArray(selectedValue)?selectedValue.slice():[];
+   if(current.length+files.length>8)throw new Error('برای هر گالری یا محصول حداکثر ۸ عکس می‌توانی ثبت کنی.');
+   for(const f of files)current.push(await compressImage(f));
+   if(selected!==target)throw new Error('صفحهٔ مقصد تغییر کرده؛ دوباره گالری را انتخاب کن.');
+   selectedValue=current;renderImageList(target,current,true);
+   document.getElementById('qa-hint').textContent=current.length+' عکس در پیش‌نمایش آماده است؛ برای ثبت دائمی ذخیره یا انتشار را بزن.';
+  }else{
+   const dataUrl=await compressImage(files[0]);
+   if(target.tagName==='IMG')target.src=dataUrl;else{target.textContent='';let preview=target.querySelector(':scope > img[data-qotb-managed]');if(!preview){preview=document.createElement('img');preview.dataset.qotbManaged='1';preview.alt='تصویر محصول';preview.style.cssText='display:block;width:100%;height:100%;max-height:420px;object-fit:contain';target.appendChild(preview)}preview.src=dataUrl}
+   selectedValue=dataUrl;document.getElementById('qa-hint').textContent='عکس انتخاب شد؛ برای ثبت، ذخیره یا انتشار را بزن.';
+  }
+ }catch(e){document.getElementById('qa-hint').textContent=e.message||'خواندن عکس ناموفق بود.'}
+ finally{file.value=''}
 });
 function compressImage(f){return new Promise((resolve,reject)=>{if(f.size>12000000){reject(new Error('حجم عکس بیشتر از ۱۲ مگابایت است.'));return}const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{const im=new Image();im.onerror=reject;im.onload=()=>{let scale=Math.min(1,900/Math.max(im.width,im.height)),url='';for(let attempt=0;attempt<8;attempt++){const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*scale));c.height=Math.max(1,Math.round(im.height*scale));c.getContext('2d').drawImage(im,0,0,c.width,c.height);url=c.toDataURL('image/jpeg',Math.max(.38,.68-attempt*.05));if(url.length<180000)break;scale*=.82}if(url.length>=180000){reject(new Error('حجم عکس پس از فشرده‌سازی هنوز زیاد است.'));return}resolve(url)};im.src=reader.result};reader.readAsDataURL(f)})}
 async function save(status){
