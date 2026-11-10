@@ -529,6 +529,19 @@ main > .page.qotb-about{padding-top:0!important;margin-top:0!important;}
 .qotb-lightbox-close{position:absolute;top:16px;right:20px;width:42px;height:42px;border:0;border-radius:50%;background:#ffffff22;color:#fff;font:32px Arial;cursor:pointer}
 .qotb-lightbox-prev{right:18px}.qotb-lightbox-next{left:18px}.qotb-lightbox-count{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;background:#0008;border-radius:20px;padding:6px 12px;font:13px Arial}
 @media(max-width:600px){.qotb-product-stage{height:300px}#qotb-photo-lightbox{padding:55px 45px}.qotb-lightbox-prev{right:5px}.qotb-lightbox-next{left:5px}}
+/* Page-turn effects are limited to photos; section navigation stays still. */
+@keyframes qotbPhotoSheetNext{0%{transform:perspective(1400px) rotateY(0);opacity:1}100%{transform:perspective(1400px) rotateY(-88deg);opacity:.08}}
+@keyframes qotbPhotoSheetPrev{0%{transform:perspective(1400px) rotateY(0);opacity:1}100%{transform:perspective(1400px) rotateY(88deg);opacity:.08}}
+.qotb-page-turn-sheet,.qotb-lightbox-page-sheet{backface-visibility:hidden;box-shadow:0 5px 24px #0003}
+.qotb-page-turn-sheet.turn-next.is-turning,.qotb-lightbox-page-sheet.turn-next.is-turning{animation:qotbPhotoSheetNext .5s cubic-bezier(.55,.08,.68,.53) forwards}
+.qotb-page-turn-sheet.turn-prev.is-turning,.qotb-lightbox-page-sheet.turn-prev.is-turning{animation:qotbPhotoSheetPrev .5s cubic-bezier(.55,.08,.68,.53) forwards}
+.qotb-product-stage .qotb-gallery-main.qotb-page-turn-in{animation:qotbTurnIncoming .5s ease both}
+.qotb-photo-arrow,.qotb-lightbox-arrow{transform:translateY(-50%)!important}
+.qotb-product-carousel .qotb-photo-next{left:auto!important;right:10px!important}
+.qotb-product-carousel .qotb-photo-prev{right:auto!important;left:10px!important}
+#qotb-photo-lightbox .qotb-lightbox-next{left:auto!important;right:16px!important}
+#qotb-photo-lightbox .qotb-lightbox-prev{right:auto!important;left:16px!important}
+@media(prefers-reduced-motion:reduce){.qotb-page-turn-sheet,.qotb-lightbox-page-sheet,.qotb-product-stage .qotb-gallery-main.qotb-page-turn-in{animation:none!important}}
 </style><style>
 
 /* v35: live product-only search suggestions */
@@ -1586,18 +1599,3 @@ if(manage){if(token){showEditor();loadPublic()}else login.style.display='flex'}
 else loadPublic();
 })();
 </script></body></html>
-
-/* Page-turn effects are limited to photos; section navigation stays still. */
-@keyframes qotbPhotoSheetNext{0%{transform:perspective(1400px) rotateY(0);opacity:1}100%{transform:perspective(1400px) rotateY(-88deg);opacity:.08}}
-@keyframes qotbPhotoSheetPrev{0%{transform:perspective(1400px) rotateY(0);opacity:1}100%{transform:perspective(1400px) rotateY(88deg);opacity:.08}}
-.qotb-page-turn-sheet,.qotb-lightbox-page-sheet{backface-visibility:hidden;box-shadow:0 5px 24px #0003}
-.qotb-page-turn-sheet.turn-next.is-turning,.qotb-lightbox-page-sheet.turn-next.is-turning{animation:qotbPhotoSheetNext .5s cubic-bezier(.55,.08,.68,.53) forwards}
-.qotb-page-turn-sheet.turn-prev.is-turning,.qotb-lightbox-page-sheet.turn-prev.is-turning{animation:qotbPhotoSheetPrev .5s cubic-bezier(.55,.08,.68,.53) forwards}
-.qotb-product-stage .qotb-gallery-main.qotb-page-turn-in{animation:qotbTurnIncoming .5s ease both}
-.qotb-photo-arrow,.qotb-lightbox-arrow{transform:translateY(-50%)!important}
-.qotb-product-carousel .qotb-photo-next{left:auto!important;right:10px!important}
-.qotb-product-carousel .qotb-photo-prev{right:auto!important;left:10px!important}
-#qotb-photo-lightbox .qotb-lightbox-next{left:auto!important;right:16px!important}
-#qotb-photo-lightbox .qotb-lightbox-prev{right:auto!important;left:16px!important}
-@media(prefers-reduced-motion:reduce){.qotb-page-turn-sheet,.qotb-lightbox-page-sheet,.qotb-product-stage .qotb-gallery-main.qotb-page-turn-in{animation:none!important}}
-</style>
