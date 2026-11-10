@@ -506,13 +506,13 @@ main > .page.qotb-about{padding-top:0!important;margin-top:0!important;}
 .qotb-product-stage{height:390px;max-width:100%;position:relative;display:flex;align-items:center;justify-content:center;background:#f7f7f7;border-radius:16px;overflow:hidden}
 .qotb-product-stage .qotb-gallery-main{width:100%;height:100%;max-height:390px;object-fit:contain;background:transparent;border-radius:0}
 .qotb-photo-arrow,.qotb-lightbox-arrow{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:50%;background:#111b;color:white;font:26px/1 Arial;display:grid;place-items:center;cursor:pointer;z-index:3}
-.qotb-photo-prev{left:10px}.qotb-photo-next{right:10px}.qotb-photo-count{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);padding:4px 10px;border-radius:20px;background:#111b;color:#fff;font:12px Arial}
+.qotb-photo-prev{right:10px}.qotb-photo-next{left:10px}.qotb-photo-count{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);padding:4px 10px;border-radius:20px;background:#111b;color:#fff;font:12px Arial}
 .qotb-current-photo-remove{position:absolute;top:10px;right:10px;border:0;border-radius:8px;background:#b42318;color:#fff;padding:6px 9px;cursor:pointer}
 #qotb-photo-lightbox{display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.94);align-items:center;justify-content:center;padding:55px 65px;box-sizing:border-box}
 #qotb-photo-lightbox.is-open{display:flex}#qotb-photo-lightbox>img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;border-radius:4px}
 .qotb-lightbox-close{position:absolute;top:16px;right:20px;width:42px;height:42px;border:0;border-radius:50%;background:#ffffff22;color:#fff;font:32px Arial;cursor:pointer}
-.qotb-lightbox-prev{left:18px}.qotb-lightbox-next{right:18px}.qotb-lightbox-count{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;background:#0008;border-radius:20px;padding:6px 12px;font:13px Arial}
-@media(max-width:600px){.qotb-product-stage{height:300px}#qotb-photo-lightbox{padding:55px 45px}.qotb-lightbox-prev{left:5px}.qotb-lightbox-next{right:5px}}
+.qotb-lightbox-prev{right:18px}.qotb-lightbox-next{left:18px}.qotb-lightbox-count{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;background:#0008;border-radius:20px;padding:6px 12px;font:13px Arial}
+@media(max-width:600px){.qotb-product-stage{height:300px}#qotb-photo-lightbox{padding:55px 45px}.qotb-lightbox-prev{right:5px}.qotb-lightbox-next{left:5px}}
 </style><style>
 
 /* v35: live product-only search suggestions */
@@ -1091,7 +1091,7 @@ function chooseText(el){
 function openQotbLightbox(images,index){
  if(!Array.isArray(images)||!images.length)return;
  let modal=document.getElementById('qotb-photo-lightbox');
- if(!modal){modal=document.createElement('div');modal.id='qotb-photo-lightbox';modal.innerHTML='<button type="button" class="qotb-lightbox-close" aria-label="بستن">×</button><button type="button" class="qotb-lightbox-arrow qotb-lightbox-prev" aria-label="عکس قبلی">‹</button><img alt="نمایش تمام صفحه"><button type="button" class="qotb-lightbox-arrow qotb-lightbox-next" aria-label="عکس بعدی">›</button><span class="qotb-lightbox-count"></span>';document.body.appendChild(modal)}
+ if(!modal){modal=document.createElement('div');modal.id='qotb-photo-lightbox';modal.innerHTML='<button type="button" class="qotb-lightbox-close" aria-label="بستن">×</button><button type="button" class="qotb-lightbox-arrow qotb-lightbox-prev" aria-label="عکس قبلی">›</button><img alt="نمایش تمام صفحه"><button type="button" class="qotb-lightbox-arrow qotb-lightbox-next" aria-label="عکس بعدی">‹</button><span class="qotb-lightbox-count"></span>';document.body.appendChild(modal)}
  let active=index;
  const paint=()=>{modal.querySelector('img').src=images[active];modal.querySelector('.qotb-lightbox-count').textContent=(active+1)+' / '+images.length;modal.querySelector('.qotb-lightbox-prev').style.display=images.length>1?'grid':'none';modal.querySelector('.qotb-lightbox-next').style.display=images.length>1?'grid':'none'};
  const close=()=>{modal.classList.remove('is-open');document.removeEventListener('keydown',keys)};
@@ -1181,8 +1181,8 @@ function renderImageList(target,images,admin){
   if(!images.length){const empty=document.createElement('div');empty.className='qotb-gallery-empty';empty.textContent=admin?'برای افزودن عکس، دکمه افزودن عکس را بزن.':'تصویری ثبت نشده است.';stage.appendChild(empty);return}
   const photo=document.createElement('img');photo.className='qotb-gallery-main';photo.src=images[currentIndex];photo.alt='تصویر محصول '+(currentIndex+1);photo.style.cursor='zoom-in';photo.addEventListener('click',()=>openQotbLightbox(images,currentIndex));stage.appendChild(photo);
   if(images.length>1){
-   const prev=document.createElement('button');prev.type='button';prev.className='qotb-photo-arrow qotb-photo-prev';prev.textContent='‹';prev.setAttribute('aria-label','عکس قبلی');prev.onclick=()=>{currentIndex=(currentIndex-1+images.length)%images.length;showPhoto()};
-   const next=document.createElement('button');next.type='button';next.className='qotb-photo-arrow qotb-photo-next';next.textContent='›';next.setAttribute('aria-label','عکس بعدی');next.onclick=()=>{currentIndex=(currentIndex+1)%images.length;showPhoto()};
+   const prev=document.createElement('button');prev.type='button';prev.className='qotb-photo-arrow qotb-photo-prev';prev.textContent='›';prev.setAttribute('aria-label','عکس قبلی');prev.onclick=()=>{currentIndex=(currentIndex-1+images.length)%images.length;showPhoto()};
+   const next=document.createElement('button');next.type='button';next.className='qotb-photo-arrow qotb-photo-next';next.textContent='‹';next.setAttribute('aria-label','عکس بعدی');next.onclick=()=>{currentIndex=(currentIndex+1)%images.length;showPhoto()};
    stage.append(prev,next);
    const count=document.createElement('span');count.className='qotb-photo-count';count.textContent=(currentIndex+1)+' / '+images.length;stage.appendChild(count);
   }
