@@ -1222,12 +1222,14 @@ async function save(status){
    /* پیش‌نویس روی صفحه بماند و دادهٔ قدیمی جایگزینش نکند. */
    locallyEditedTargets.set(savedTarget,true);
   }
-  document.getElementById('qa-hint').textContent=status==='published'?'تغییر منتشر شد و برای بازدیدکنندگان اعمال می‌شود.':'پیش‌نویس ذخیره شد؛ هنوز برای بازدیدکنندگان نمایش داده نمی‌شود.';
-  savedTarget.classList.remove('qotb-edit-selected');
-  savedTarget.contentEditable='false';
-  selected=null;
-  selectedValue='';
-  if(status==='published')applyPublished();
+  document.getElementById('qa-hint').textContent=status==='published'?'تغییر منتشر شد و برای بازدیدکنندگان اعمال می‌شود.':'پیش‌نویس ذخیره شد؛ برای انتشار همین تغییر، دکمهٔ انتشار را بزن. مورد ویرایش‌شده همچنان انتخاب‌شده می‌ماند.';
+  if(status==='published'){
+   savedTarget.classList.remove('qotb-edit-selected');
+   savedTarget.contentEditable='false';
+   selected=null;
+   selectedValue='';
+   applyPublished();
+  }
  }
  catch(e){document.getElementById('qa-hint').textContent='خطا: '+e.message}
 }
