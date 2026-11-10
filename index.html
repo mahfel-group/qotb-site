@@ -1112,13 +1112,13 @@ async function apiFetch(path,options={}){
   const controllers=bases.map(()=>new AbortController());
   const timers=controllers.map(controller=>setTimeout(()=>controller.abort(),4500));
   try{
-   const response=await Promise.any(bases.map(async(base,index)=>{
+   const winner=await Promise.any(bases.map(async(base,index)=>{
     const result=await fetch(base+path,{...options,signal:controllers[index].signal});
     if(!result.ok)throw new Error('HTTP '+result.status+' از '+base);
-    return result;
+    return {result,index};
    }));
-   controllers.forEach((controller,index)=>{if(!controller.signal.aborted)controller.abort()});
-   return response;
+   controllers.forEach((controller,index)=>{if(index!==winner.index&&!controller.signal.aborted)controller.abort()});
+   return winner.result;
   }catch(e){throw e.errors?.[0]||e}
   finally{timers.forEach(clearTimeout)}
  }
