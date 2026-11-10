@@ -635,6 +635,26 @@ main > .page.qotb-about{padding-top:0!important;margin-top:0!important;}
 }
 
 </style>
+<style>
+/* QOTB true page-turn motion */
+@keyframes qotbTurnNext{0%{transform:perspective(1400px) rotateY(0);opacity:1}100%{transform:perspective(1400px) rotateY(-88deg);opacity:.15}}
+@keyframes qotbTurnPrev{0%{transform:perspective(1400px) rotateY(0);opacity:1}100%{transform:perspective(1400px) rotateY(88deg);opacity:.15}}
+@keyframes qotbTurnIncoming{0%{opacity:.25;transform:scale(.97)}100%{opacity:1;transform:scale(1)}}
+@keyframes qotbLightboxTurn{0%{opacity:.35;transform:perspective(1200px) rotateY(-12deg) scale(.98)}100%{opacity:1;transform:perspective(1200px) rotateY(0) scale(1)}}
+.qotb-product-stage{perspective:1400px!important}
+.qotb-page-turn-sheet{backface-visibility:hidden;box-shadow:0 5px 24px #0002}
+.qotb-page-turn-sheet.turn-next.is-turning{animation:qotbTurnNext .48s cubic-bezier(.55,.08,.68,.53) forwards}
+.qotb-page-turn-sheet.turn-prev.is-turning{animation:qotbTurnPrev .48s cubic-bezier(.55,.08,.68,.53) forwards}
+.qotb-product-stage .qotb-gallery-main.qotb-page-turn-in{animation:qotbTurnIncoming .48s ease both}
+#qotb-photo-lightbox>img.qotb-lightbox-turn-in{animation:qotbLightboxTurn .36s ease both}
+.qotb-photo-arrow,.qotb-lightbox-arrow{transform:translateY(-50%)!important}
+.qotb-product-carousel .qotb-photo-next{left:auto!important;right:10px!important}
+.qotb-product-carousel .qotb-photo-prev{right:auto!important;left:10px!important}
+#qotb-photo-lightbox .qotb-lightbox-next{left:auto!important;right:16px!important}
+#qotb-photo-lightbox .qotb-lightbox-prev{right:auto!important;left:16px!important}
+.page.active{animation:qotbTurnIncoming .38s ease both}
+@media(prefers-reduced-motion:reduce){.qotb-page-turn-sheet.turn-next.is-turning,.qotb-page-turn-sheet.turn-prev.is-turning,.qotb-product-stage .qotb-gallery-main.qotb-page-turn-in,#qotb-photo-lightbox>img.qotb-lightbox-turn-in,.page.active{animation:none!important}}
+</style>
 </head><body>
 <header><div class="container nav">
 <a class="brand" href="#home" onclick="showPage('home');closeDrawer()">
@@ -1203,8 +1223,13 @@ function openQotbLightbox(images,index){
  const next=modal.querySelector('.qotb-lightbox-next');
  const count=modal.querySelector('.qotb-lightbox-count');
  const paint=()=>{
-  photo.src=list[active];
+  const oldSrc=photo.src;
+  const nextSrc=list[active];
+  photo.src=nextSrc;
   photo.alt='تصویر '+(active+1)+' از '+list.length;
+  photo.classList.remove('qotb-lightbox-turn-in');
+  void photo.offsetWidth;
+  photo.classList.add('qotb-lightbox-turn-in');
   count.textContent=(active+1)+' / '+list.length;
   prev.hidden=list.length<2;
   next.hidden=list.length<2;
@@ -1316,8 +1341,23 @@ function renderImageList(target,images,admin){
  let touchStartX=0;
  const change=delta=>{
   if(list.length<2)return;
+  if(stage.dataset.turning==='1')return;
+  const outgoing=stage.querySelector('.qotb-gallery-main');
+  const direction=delta>0?'next':'prev';
   currentIndex=(currentIndex+delta+list.length)%list.length;
-  showPhoto();
+  if(outgoing){
+   stage.dataset.turning='1';
+   const sheet=outgoing.cloneNode(true);
+   sheet.className='qotb-page-turn-sheet '+(direction==='next'?'turn-next':'turn-prev');
+   sheet.removeAttribute('role');sheet.removeAttribute('tabindex');
+   sheet.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;z-index:4;pointer-events:none;transform-origin:'+(direction==='next'?'left center':'right center')+';';
+   stage.appendChild(sheet);
+   showPhoto();
+   const incoming=stage.querySelector('.qotb-gallery-main');
+   if(incoming)incoming.style.opacity='0';
+   requestAnimationFrame(()=>{sheet.classList.add('is-turning');if(incoming)incoming.classList.add('qotb-page-turn-in')});
+   window.setTimeout(()=>{sheet.remove();if(incoming){incoming.style.opacity='';incoming.classList.remove('qotb-page-turn-in')}stage.dataset.turning='0'},520);
+  }else showPhoto();
  };
  const showPhoto=()=>{
   stage.replaceChildren();
