@@ -1477,7 +1477,8 @@ async function optimizeGalleryImages(){
   await request('/api/content/'+encodeURIComponent(item.id),{method:'PUT',body:JSON.stringify(body)});
   const index=publishedItems.findIndex(entry=>entry.id===item.id);
   if(index>=0)publishedItems[index]={...item,status:'published',data};
-  appliedPublishedData.delete(document.querySelector(item.data.selector));
+  const galleryTarget=document.querySelector(item.data.selector);
+  if(galleryTarget)appliedPublishedData.delete(galleryTarget);
   applyPublished();
   const saved=Math.round((1-after/before)*100);
   hint.textContent='بهینه‌سازی انجام شد؛ حجم تصاویر گالری حدود '+saved+'٪ کمتر شد. نسخهٔ قبلی در تاریخچهٔ سرور ذخیره شد.';
