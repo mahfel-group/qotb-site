@@ -1064,7 +1064,7 @@ function chooseText(el){
  if(selected&&selected!==el){selected.contentEditable='false';selected.classList.remove('qotb-edit-selected')}
  selected=el;selectedKind='text';selectedValue=el.textContent;el.contentEditable='true';el.focus();el.classList.add('qotb-edit-selected');document.getElementById('qa-hint').textContent='متن را همین‌جا تغییر بده، سپس ذخیره پیش‌نویس یا انتشار را بزن.';
 }
-function chooseImage(img){if(selected&&selected!==img){selected.contentEditable='false';selected.classList.remove('qotb-edit-selected')}selected=img;selectedKind='image';selected.classList.add('qotb-edit-selected');document.getElementById('qa-hint').textContent='یک عکس از دستگاه انتخاب کن.';file.click()}
+function chooseImage(img){if(selected&&selected!==img){selected.contentEditable='false';selected.classList.remove('qotb-edit-selected')}selected=img;selectedKind='image';selectedValue='';selected.classList.add('qotb-edit-selected');document.getElementById('qa-hint').textContent='یک عکس از دستگاه انتخاب کن.';file.click()}
 document.addEventListener('click',function(e){
  if(!manage||tools.contains(e.target)||login.contains(e.target)||!tools.style.display||tools.style.display==='none')return;
  const img=e.target.closest&&e.target.closest('img');
