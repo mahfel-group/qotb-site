@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b36">
+<title>مدیریت فروشگاه قطب</title>
+<style>
+:root{--navy:#102b36;--teal:#167c80;--bg:#f3f6f7;--ink:#19313a;--muted:#71838a;--line:#e2e9eb;--white:#fff;--gold:#e9b95e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,Arial,sans-serif;font-size:15px;line-height:1.8}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+.top{background:var(--navy);color:#fff;padding:22px 18px 26px;border-radius:0 0 24px 24px}
+.topinner,.wrap{max-width:980px;margin:auto}.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:14px;background:#fff;color:var(--navy);display:grid;place-items:center;font-weight:900;font-size:20px}.brand small{display:block;color:#b9cbd0;font-size:12px}.top h1{font-size:21px;margin:20px 0 2px}.top p{margin:0;color:#c7d7da;font-size:13px}
+.wrap{padding:16px 14px 40px}.notice{background:#fff8e8;border:1px solid #f0dfb7;color:#70551d;padding:12px 14px;border-radius:14px;font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.navbtn{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 10px;text-align:right;color:var(--ink);min-height:92px;box-shadow:0 2px 8px #102b3608}.navbtn .ico{font-size:22px;display:block;margin-bottom:5px}.navbtn b{font-size:13px}.navbtn small{display:block;color:var(--muted);font-size:11px}.navbtn.active{border:2px solid var(--teal);background:#f0fbfa}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:16px;box-shadow:0 4px 14px #102b3608}.panel h2{font-size:18px;margin:0 0 4px}.sub{color:var(--muted);font-size:12px;margin:0 0 18px}
+.field{margin:13px 0}.field label{display:block;font-weight:bold;font-size:13px;margin-bottom:6px}.field input,.field textarea,.field select{width:100%;border:1px solid #d7e1e4;border-radius:11px;padding:12px;background:#fff;color:var(--ink);outline:none}.field textarea{min-height:100px;resize:vertical}.field input:focus,.field textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px #167c8018}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:11px;padding:11px 16px;font-weight:bold}.primary{background:var(--teal);color:#fff}.soft{background:#eaf2f3;color:var(--navy)}.muted{color:var(--muted);font-size:12px}
+.item{border:1px solid var(--line);border-radius:13px;padding:12px;margin:10px 0;display:flex;justify-content:space-between;gap:10px;align-items:center}.item b{font-size:13px}.tag{font-size:11px;background:#edf5f5;color:#24666a;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.hidden{display:none!important}.filebox{border:2px dashed #b9cdd0;border-radius:14px;padding:24px;text-align:center;color:var(--muted);background:#f8fbfb}.footer{text-align:center;color:#87979c;font-size:11px;padding:24px 0}
+@media(max-width:520px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:15px}.top h1{font-size:19px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="topinner">
+<div class="brand"><div class="logo">ق</div><div><strong>فروشگاه یخچال قطب</strong><small>پنل مدیریت سایت</small></div></div>
+<h1>سلام! خوش اومدی 👋</h1><p>از اینجا می‌تونی بخش‌های مختلف سایت رو مدیریت کنی.</p>
+</div></header>
+<main class="wrap">
+<div class="notice">🔧 این نسخه، پیش‌نمایش اولیه پنل است. هنوز به ذخیره‌سازی و انتشار واقعی وصل نشده؛ بنابراین هیچ تغییری روی سایت اصلی ایجاد نمی‌کند.</div>
+<nav class="grid" aria-label="بخش‌های مدیریت">
+<button class="navbtn active" data-page="home"><span class="ico">🏠</span><b>خانه پنل</b><small>نمای کلی مدیریت</small></button>
+<button class="navbtn" data-page="products"><span class="ico">🧊</span><b>محصولات</b><small>مدیریت کالاها</small></button>
+<button class="navbtn" data-page="images"><span class="ico">🖼️</span><b>عکس‌ها و فایل‌ها</b><small>مدیریت تصاویر</small></button>
+<button class="navbtn" data-page="pages"><span class="ico">📝</span><b>نوشته‌های سایت</b><small>متن‌ها و صفحه‌ها</small></button>
+<button class="navbtn" data-page="contact"><span class="ico">📞</span><b>شماره و آدرس</b><small>راه‌های ارتباطی</small></button>
+<button class="navbtn" data-page="publish"><span class="ico">🚀</span><b>پیش‌نمایش و انتشار</b><small>بررسی تغییرات</small></button>
+</nav>
+<section class="panel" id="home">
+<h2>مدیریت قطب، ساده و مرتب</h2><p class="sub">برای شروع، یکی از بخش‌های بالا رو انتخاب کن.</p>
+<div class="item"><div><b>وضعیت سایت اصلی</b><div class="muted">بدون تغییر؛ سایت فعلی دست‌نخورده می‌ماند.</div></div><span class="tag">فعال</span></div>
+<div class="item"><div><b>ذخیره‌سازی پنل</b><div class="muted">در مرحله اتصال به سرویس رایگان</div></div><span class="tag">در حال آماده‌سازی</span></div>
+<div class="item"><div><b>انتشار تغییرات</b><div class="muted">فقط با تأیید نهایی شما انجام می‌شود.</div></div><span class="tag">غیرفعال</span></div>
+</section>
+<section class="panel hidden" id="products"><h2>محصولات</h2><p class="sub">در این قسمت می‌توانیم محصولات و مشخصاتشان را مدیریت کنیم.</p>
+<div class="field"><label>نام محصول</label><input placeholder="مثلاً یخچال نوشیدنی ۶۰ سانتی"></div>
+<div class="field"><label>توضیحات محصول</label><textarea placeholder="مشخصات و توضیحات محصول..."></textarea></div>
+<div class="field"><label>دسته‌بندی</label><select><option>یخچال نوشیدنی</option><option>فر ساندویچی</option><option>سایر محصولات</option></select></div>
+<p class="muted">فرم فعلاً نمایشی است و هنوز چیزی را ذخیره نمی‌کند.</p></section>
+<section class="panel hidden" id="images"><h2>عکس‌ها و فایل‌ها</h2><p class="sub">عکس‌ها را انتخاب می‌کنی و قبل از ثبت، پیش‌نمایش می‌بینی.</p>
+<label class="filebox">📷<br><b>انتخاب عکس</b><br><small>اتصال آپلود در مرحله بعد فعال می‌شود.</small><input type="file" accept="image/*" hidden id="pick"></label><div id="preview" class="muted"></div></section>
+<section class="panel hidden" id="pages"><h2>نوشته‌های سایت</h2><p class="sub">متن‌های صفحه اصلی، درباره ما و بخش‌های دیگر.</p>
+<div class="field"><label>عنوان بخش</label><input placeholder="عنوان مورد نظر"></div><div class="field"><label>متن</label><textarea placeholder="متن را اینجا بنویس..."></textarea></div><p class="muted">ویرایش و ذخیره واقعی پس از اتصال پنل فعال می‌شود.</p></section>
+<section class="panel hidden" id="contact"><h2>شماره و آدرس</h2><p class="sub">اطلاعات تماس سایت از یک محل مدیریت می‌شوند.</p>
+<div class="field"><label>شماره تماس اول</label><input placeholder="شماره تماس"></div><div class="field"><label>شماره تماس دوم</label><input placeholder="شماره تماس دوم"></div><div class="field"><label>آدرس فروشگاه</label><textarea placeholder="آدرس کامل فروشگاه"></textarea></div></section>
+<section class="panel hidden" id="publish"><h2>پیش‌نمایش و انتشار</h2><p class="sub">قبل از انتشار، همه تغییرات بررسی می‌شوند.</p>
+<div class="item"><b>پیش‌نمایش تغییرات</b><span class="tag">مرحله بعد</span></div><div class="item"><b>بازگشت به نسخه قبلی</b><span class="tag">مرحله بعد</span></div><button class="btn soft" type="button" disabled>انتشار در سایت (فعلاً غیرفعال)</button></section>
+<div class="footer">پنل مدیریت فروشگاه قطب · نسخه آزمایشی</div>
+</main>
+<script>
+const buttons=[...document.querySelectorAll('.navbtn')], panels=[...document.querySelectorAll('.panel')];
+buttons.forEach(btn=>btn.addEventListener('click',()=>{buttons.forEach(b=>b.classList.toggle('active',b===btn));panels.forEach(p=>p.classList.toggle('hidden',p.id!==btn.dataset.page));}));
+document.getElementById('pick').addEventListener('change',e=>{const f=e.target.files[0];const out=document.getElementById('preview');if(!f){out.textContent='';return;}out.textContent='انتخاب شد: '+f.name+' (فقط پیش‌نمایش انتخاب فایل؛ هنوز آپلود نمی‌شود)';});
+</script>
+</body></html>
