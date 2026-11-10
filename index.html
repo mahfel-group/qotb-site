@@ -1025,6 +1025,9 @@ const params=new URLSearchParams(location.search);
 const manage=params.get('manage')==='1';
 let token=sessionStorage.getItem('qotb_inline_admin')||'';
 let selected=null, selectedKind='text', selectedValue='', publishedItems=[];
+/* جلوگیری از حلقهٔ MutationObserver و بازنویسی پیش‌نمایش محلی با دادهٔ قدیمی */
+const appliedPublishedData=new WeakMap();
+const locallyEditedTargets=new WeakMap();
 const style=document.createElement('style');style.textContent="\n.qotb-image-gallery{display:flex!important;flex-direction:column;gap:10px;padding:12px!important;min-height:250px}.blank-gallery.qotb-image-gallery{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));align-items:start}.qotb-gallery-tile{position:relative;min-width:0}.qotb-gallery-tile img{width:100%;height:210px;object-fit:cover;border-radius:12px}.qotb-gallery-tile button{position:absolute;top:6px;right:6px;border:0;border-radius:50%;background:#b42318;color:#fff;width:25px;height:25px;cursor:pointer}.blank-gallery.qotb-image-gallery .qotb-inline-add,.blank-gallery.qotb-image-gallery .qotb-gallery-empty{grid-column:1/-1}@media(max-width:700px){.blank-gallery.qotb-image-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}.qotb-gallery-main{width:100%;height:300px;object-fit:contain;background:#f7f7f7;border-radius:12px}.qotb-gallery-thumbs{display:flex;gap:8px;flex-wrap:wrap}.qotb-thumb-wrap{position:relative}.qotb-thumb-wrap img{width:72px;height:64px;object-fit:cover;border:1px solid #ddd;border-radius:8px;cursor:pointer}.qotb-thumb-wrap button{position:absolute;top:-6px;right:-6px;border:0;border-radius:50%;background:#b42318;color:#fff;width:22px;height:22px;cursor:pointer}.qotb-gallery-empty{padding:45px 12px;text-align:center;color:#888}.qotb-inline-add{border:1px dashed #888!important;border-radius:9px;padding:9px!important;background:#fff!important;color:#111!important;font:inherit;cursor:pointer}.qotb-edit-selected.qotb-image-gallery{outline:2px solid #168b83!important}\n/* QOTB inline administration */\n#qotb-admin-login{position:fixed;inset:0;z-index:99999;background:#080808d9;display:none;align-items:center;justify-content:center;padding:18px;font-family:Vazirmatn,Arial,sans-serif}\n#qotb-admin-login .qa-box{width:min(420px,100%);background:#fff;border-radius:18px;padding:24px;box-shadow:0 20px 70px #0005;color:#111}\n#qotb-admin-login h2{margin:0 0 8px;font-size:20px}#qotb-admin-login p{color:#666;font-size:13px;margin:0 0 14px}\n#qotb-admin-login input{width:100%;padding:13px;border:1px solid #ccc;border-radius:10px;font:inherit;margin:8px 0}\n#qotb-admin-login button,#qotb-admin-tools button{border:0;border-radius:10px;padding:11px 16px;font:inherit;font-weight:700;cursor:pointer}\n#qotb-admin-login button{background:#080808;color:#fff;width:100%;margin-top:8px}\n#qotb-admin-error{color:#b42318;font-size:13px;min-height:22px}\n#qotb-admin-tools{position:fixed;z-index:99990;bottom:14px;left:14px;right:14px;display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#101010f2;color:white;padding:10px 12px;border-radius:14px;box-shadow:0 8px 35px #0004;font-family:Vazirmatn,Arial,sans-serif}\n#qotb-admin-tools .qa-hint{font-size:12px;flex:1;min-width:150px}\n#qotb-admin-tools button{background:#fff;color:#111;font-size:12px}\n#qotb-admin-tools button.qa-publish{background:#d7ad55}\n#qotb-admin-tools button.qa-exit{background:#555;color:#fff}\n.qotb-edit-hover{outline:2px dashed #d4a63e!important;outline-offset:3px;cursor:text!important}\n.qotb-edit-selected{outline:2px solid #168b83!important;outline-offset:3px}\n@media(max-width:600px){#qotb-admin-tools{bottom:8px;left:8px;right:8px}#qotb-admin-tools .qa-hint{flex-basis:100%}}\n";document.head.appendChild(style);
 const login=document.createElement('div');login.id='qotb-admin-login';login.innerHTML='<div class="qa-box"><h2>ورود مدیریت قطب</h2><p>بعد از ورود، روی متن یا عکس موردنظرت بزن تا همان‌جا ویرایشش کنی.</p><input id="qa-password" type="password" placeholder="رمز مدیریت" autocomplete="current-password"><button id="qa-login-btn" type="button">ورود به حالت ویرایش</button><div id="qotb-admin-error"></div></div>';document.body.appendChild(login);
 const tools=document.createElement('div');tools.id='qotb-admin-tools';tools.innerHTML='<span class="qa-hint" id="qa-hint">برای ویرایش، روی متن یا عکس موردنظر بزن.</span><button id="qa-add-images" type="button">＋ افزودن عکس</button><button id="qa-draft" type="button">ذخیره پیش‌نویس</button><button id="qa-publish" class="qa-publish" type="button">انتشار این تغییر</button><button id="qa-exit" class="qa-exit" type="button">خروج</button>';document.body.appendChild(tools);
@@ -1209,16 +1212,23 @@ async function save(status){
  const body={id,section:sectionName(selected),title:(selectedKind==='image-list'?'مجموعه عکس: ':selectedKind==='image'?'تصویر: ':'متن: ')+(selected.textContent||selected.alt||selector).trim().slice(0,90),status,data:{selector,kind:selectedKind,value:selectedValue}};
  try{
   await request('/api/content/'+id,{method:'PUT',body:JSON.stringify(body)});
+  const savedTarget=selected;
   if(status==='published'){
    const saved={id,status:'published',data:body.data};
    const at=publishedItems.findIndex(item=>item.id===id);
    if(at>=0)publishedItems[at]=saved;else publishedItems.push(saved);
+   locallyEditedTargets.delete(savedTarget);
+   appliedPublishedData.delete(savedTarget);
+  }else{
+   /* پیش‌نویس روی صفحه بماند و دادهٔ قدیمی جایگزینش نکند. */
+   locallyEditedTargets.set(savedTarget,true);
   }
   document.getElementById('qa-hint').textContent=status==='published'?'تغییر منتشر شد و برای بازدیدکنندگان اعمال می‌شود.':'پیش‌نویس ذخیره شد؛ هنوز برای بازدیدکنندگان نمایش داده نمی‌شود.';
-  selected.classList.remove('qotb-edit-selected');
-  selected.contentEditable='false';
+  savedTarget.classList.remove('qotb-edit-selected');
+  savedTarget.contentEditable='false';
   selected=null;
   selectedValue='';
+  if(status==='published')applyPublished();
  }
  catch(e){document.getElementById('qa-hint').textContent='خطا: '+e.message}
 }
@@ -1227,8 +1237,41 @@ async function loadPublic(){
  catch(e){const hint=document.getElementById('qa-hint');if(hint)hint.textContent='اتصال محتوای منتشرشده برقرار نشد.'}
 }
 function applyPublished(){
- if(!publishedItems.length)return;
- for(const item of publishedItems){const d=item.data||{};if(!d.selector||!d.value)continue;let el;try{el=document.querySelector(d.selector)}catch(_){continue}if(!el||el===selected)continue;if(d.kind==='image-list'&&Array.isArray(d.value)){renderImageList(el,d.value.slice(),manage&&!!token)}else if(d.kind==='image'){if(el.tagName==='IMG')el.src=d.value;else{let img=el.querySelector(':scope > img[data-qotb-managed]');if(!img){el.textContent='';img=document.createElement('img');img.dataset.qotbManaged='1';img.alt='تصویر محصول';img.style.cssText='display:block;width:100%;height:100%;max-height:420px;object-fit:contain';el.appendChild(img)}img.src=d.value}}else if(d.kind==='text'&&!el.isContentEditable)el.textContent=d.value}
+ /* هنگام ویرایش، هیچ دادهٔ منتشرشده‌ای نباید پیش‌نمایش را بازنویسی کند. */
+ if(selected||!publishedItems.length)return;
+ for(const item of publishedItems){
+  const d=item.data||{};
+  if(!d.selector||d.value===undefined||d.value===null)continue;
+  let el;
+  try{el=document.querySelector(d.selector)}catch(_){continue}
+  if(!el||locallyEditedTargets.has(el))continue;
+  /* هر داده فقط یک بار روی هر node اعمال شود؛ وگرنه observer وارد چرخهٔ بی‌پایان می‌شود. */
+  if(appliedPublishedData.get(el)===d)continue;
+  let didApply=false;
+  if(d.kind==='image-list'&&Array.isArray(d.value)){
+   renderImageList(el,d.value.slice(),manage&&!!token);
+   didApply=true;
+  }else if(d.kind==='image'){
+   if(el.tagName==='IMG')el.src=d.value;
+   else{
+    let img=el.querySelector(':scope > img[data-qotb-managed]');
+    if(!img){
+     el.textContent='';
+     img=document.createElement('img');
+     img.dataset.qotbManaged='1';
+     img.alt='تصویر محصول';
+     img.style.cssText='display:block;width:100%;height:100%;max-height:420px;object-fit:contain';
+     el.appendChild(img);
+    }
+    img.src=d.value;
+   }
+   didApply=true;
+  }else if(d.kind==='text'&&!el.isContentEditable){
+   el.textContent=d.value;
+   didApply=true;
+  }
+  if(didApply)appliedPublishedData.set(el,d);
+ }
 }
 document.addEventListener('DOMContentLoaded',loadPublic);
 const observer=new MutationObserver(()=>{if(window.__qotbApplyTimer)clearTimeout(window.__qotbApplyTimer);window.__qotbApplyTimer=setTimeout(applyPublished,180)});
