@@ -1102,11 +1102,12 @@ document.addEventListener('DOMContentLoaded',()=>{initializeNavigation();renderC
 </script><script>
 (function(){
 'use strict';
-const API='https://api.mirzaie-qotb.ir';
-const API_FALLBACK='https://qotb-admin.qotb-panel.workers.dev';
+const API='https://www.mirzaie-qotb.ir';
+const API_FALLBACK='https://api.mirzaie-qotb.ir';
+const API_LAST_FALLBACK='https://qotb-admin.qotb-panel.workers.dev';
 async function apiFetch(path,options={}){
  let lastError=null;
- for(const base of [API,API_FALLBACK]){
+ for(const base of [API,API_FALLBACK,API_LAST_FALLBACK]){
   try{
    const response=await fetch(base+path,options);
    if(response.status>=500){lastError=new Error('HTTP '+response.status);continue;}
