@@ -1029,7 +1029,13 @@ const style=document.createElement('style');style.textContent="\n.qotb-image-gal
 const login=document.createElement('div');login.id='qotb-admin-login';login.innerHTML='<div class="qa-box"><h2>ورود مدیریت قطب</h2><p>بعد از ورود، روی متن یا عکس موردنظرت بزن تا همان‌جا ویرایشش کنی.</p><input id="qa-password" type="password" placeholder="رمز مدیریت" autocomplete="current-password"><button id="qa-login-btn" type="button">ورود به حالت ویرایش</button><div id="qotb-admin-error"></div></div>';document.body.appendChild(login);
 const tools=document.createElement('div');tools.id='qotb-admin-tools';tools.innerHTML='<span class="qa-hint" id="qa-hint">برای ویرایش، روی متن یا عکس موردنظر بزن.</span><button id="qa-add-images" type="button">＋ افزودن عکس</button><button id="qa-draft" type="button">ذخیره پیش‌نویس</button><button id="qa-publish" class="qa-publish" type="button">انتشار این تغییر</button><button id="qa-exit" class="qa-exit" type="button">خروج</button>';document.body.appendChild(tools);
 const file=document.createElement('input');file.type='file';file.accept='image/*';file.multiple=true;file.style.cssText='position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0;pointer-events:none';file.tabIndex=-1;file.setAttribute('aria-hidden','true');document.body.appendChild(file);
-function openFilePicker(){try{if(typeof file.showPicker==='function')file.showPicker();else file.click()}catch(_){file.click()}}
+function openFilePicker(){
+ file.value='';
+ try{
+  if(typeof file.showPicker==='function')file.showPicker();
+  else file.click();
+ }catch(_){file.click()}
+}
 function selectorFor(el){
  if(el.id)return '#'+CSS.escape(el.id);
  const parts=[];let node=el;
@@ -1075,7 +1081,8 @@ function renderImageList(target,images,admin){
    const slot=document.createElement('div');
    slot.className='blank';
    slot.textContent='محل عکس';
-   target.appendChild(slot);
+   const addButton=Array.from(target.children).find(el=>el.classList.contains('qotb-inline-add'));
+   target.insertBefore(slot,addButton||null);
    slots.push(slot);
   }
   slots.slice(8).forEach(slot=>slot.remove());
@@ -1162,7 +1169,7 @@ document.addEventListener('click',function(e){
  const gallery=e.target.closest&&e.target.closest('.blank-gallery');
  if(gallery){e.preventDefault();e.stopPropagation();if(selected!==gallery||selectedKind!=='image-list')chooseImageList(gallery);return}
  const productBox=e.target.closest&&e.target.closest('.product-detail-photo');
- if(productBox){e.preventDefault();e.stopPropagation();chooseImageList(productBox);return}
+ if(productBox){e.preventDefault();e.stopPropagation();if(selected!==productBox||selectedKind!=='image-list')chooseImageList(productBox);return}
  const img=e.target.closest&&e.target.closest('img');
  if(img){e.preventDefault();e.stopPropagation();chooseImage(img);return}
  const imageBox=e.target.closest&&e.target.closest('.catalog-product-image');
