@@ -1,44 +1,75 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>صفحه آزمایشی قطب</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>محیط آزمایشی قطب</title>
 <style>
-:root{font-family:Tahoma,Arial,sans-serif;color:#20242b;background:#f4f5f7}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--page-bg,#f4f5f7);color:var(--page-color,#20242b)}
-.top{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#fff;border-bottom:1px solid #e5e7eb}
-.brand{font-weight:700}button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:10px 15px;background:#20242b;color:white}
-main{min-height:calc(100vh - 64px);display:grid;place-items:center;padding:28px}
-.empty{width:min(720px,100%);min-height:300px;border:2px dashed #cbd0d8;border-radius:18px;display:grid;place-items:center;text-align:center;padding:32px;color:#858b96}
-.empty strong{display:block;color:inherit;font-size:22px;margin-bottom:10px}
-.panel{position:fixed;inset:0 0 0 auto;width:min(370px,92vw);background:white;box-shadow:-15px 0 45px #0002;z-index:5;padding:22px;transform:translateX(110%);transition:.22s;overflow:auto}
-.panel.open{transform:translateX(0)}.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
-label{display:block;font-size:13px;margin:16px 0 7px;color:#555}input{width:100%;padding:11px;border:1px solid #d8dce2;border-radius:9px;font:inherit}
-.note{font-size:12px;color:#777;line-height:1.8;margin-top:20px}.overlay{display:none;position:fixed;inset:0;background:#0005;z-index:4}.overlay.show{display:block}
-</style>
-</head>
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#20242b;font-family:Tahoma,Arial,sans-serif;min-height:100vh}
+header{height:66px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:3}
+.brand{font-weight:700}button{font:inherit;cursor:pointer;border:0;border-radius:9px;padding:10px 15px;background:#222831;color:#fff}
+#stage{width:min(1100px,calc(100% - 32px));min-height:calc(100vh - 110px);margin:22px auto 100px;background:#fff;border:1px solid #e6e8ec;border-radius:16px;padding:28px;box-shadow:0 8px 30px #18223008}
+.empty{min-height:420px;display:grid;place-items:center;text-align:center;color:#969da8;border:2px dashed #d9dee6;border-radius:14px;padding:25px}
+.empty b{display:block;color:#69717e;font-size:21px;margin-bottom:10px}
+.block{position:relative;margin:12px 0;padding:16px;border:1px solid transparent;border-radius:10px;min-height:48px}
+.block:hover{border-color:#c9d2df}.block.selected{outline:2px solid #3975d7;background:#f8fbff}
+.block[contenteditable=true]{outline:2px solid #3975d7;background:#fff}
+.block img{max-width:100%;max-height:440px;object-fit:contain;border-radius:8px;display:block;margin:auto}
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.gallery img{width:100%;height:180px;object-fit:cover}
+#login{display:none;position:fixed;inset:0;background:#10182899;z-index:20;align-items:center;justify-content:center;padding:18px}
+.loginbox{background:#fff;width:min(420px,100%);padding:25px;border-radius:16px;box-shadow:0 20px 70px #0003}
+.loginbox h2{margin:0 0 10px}.loginbox p{font-size:13px;line-height:1.9;color:#687080}
+input[type=password]{width:100%;padding:12px;border:1px solid #d5dae2;border-radius:9px;font:inherit;margin:8px 0 12px}
+#loginerr{color:#b42318;font-size:13px;min-height:20px}
+#toolbar{display:none;position:fixed;z-index:10;bottom:14px;left:50%;transform:translateX(-50%);width:min(1040px,calc(100% - 20px));background:#20242b;color:white;border-radius:15px;padding:10px 12px;box-shadow:0 12px 40px #0004;align-items:center;gap:8px;flex-wrap:wrap}
+#hint{font-size:12px;color:#e2e7ee;flex:1 1 220px;line-height:1.7}
+#toolbar button{background:#fff;color:#20242b;padding:9px 12px;font-size:13px}
+#toolbar .publish{background:#23845b;color:white}#toolbar .exit{background:#555e6b;color:#fff}
+#toolbar button:disabled{opacity:.4;cursor:not-allowed}
+#openManage{background:#252b35}
+.admin-on .block{cursor:pointer}
+@media(max-width:650px){header{padding:0 12px}#stage{padding:14px;width:calc(100% - 16px)}#toolbar{bottom:7px;gap:6px}#toolbar button{font-size:11px;padding:8px 9px}#hint{flex-basis:100%;order:2}}
+</style></head>
 <body>
-<header class="top"><div class="brand">قطب | محیط آزمایشی</div><button id="openPanel">پنل مدیریت</button></header>
-<main><section class="empty" id="canvas"><div><strong>صفحهٔ آزمایشی جدید</strong>این فضا عمداً خالی است؛ طراحی را از صفر اینجا امتحان می‌کنیم.</div></section></main>
-<div class="overlay" id="overlay"></div>
-<aside class="panel" id="panel" aria-label="پنل مدیریت">
-<div class="panel-head"><b>پنل مدیریت آزمایشی</b><button id="closePanel" aria-label="بستن">×</button></div>
-<label for="bg">رنگ پس‌زمینه</label><input id="bg" type="color" value="#f4f5f7">
-<label for="color">رنگ نوشته</label><input id="color" type="color" value="#20242b">
-<label for="heading">عنوان صفحه</label><input id="heading" type="text" value="صفحهٔ آزمایشی جدید">
-<label for="description">متن زیر عنوان</label><input id="description" type="text" value="این فضا عمداً خالی است؛ طراحی را از صفر اینجا امتحان می‌کنیم.">
-<p class="note">این یک محیط مستقل و آزمایشی است. تغییرات فقط در همین مرورگر ذخیره می‌شوند و به سایت اصلی، فایل اصلی یا اطلاعات محصولات وصل نیستند.</p>
-<button id="reset" style="width:100%;margin-top:8px;background:#e9edf2;color:#20242b">بازنشانی صفحه</button>
-</aside>
+<header><div class="brand">قطب | محیط آزمایشی</div><button id="openManage">ورود به مدیریت</button></header>
+<main id="stage"><div class="empty" id="empty"><div><b>صفحهٔ آزمایشی خالی است</b>برای شروع، وارد پنل مدیریت شو و متن یا تصویر اضافه کن.</div></div></main>
+<div id="login"><div class="loginbox"><h2>ورود مدیریت قطب</h2><p>بعد از ورود، می‌توانی اجزای صفحه را اضافه و ویرایش کنی، پیش‌نویس ذخیره کنی و تغییرات را در همین محیط آزمایشی منتشر کنی.</p><input id="password" type="password" placeholder="رمز مدیریت" autocomplete="current-password"><button id="loginBtn" style="width:100%">ورود به حالت ویرایش</button><div id="loginerr"></div></div></div>
+<div id="toolbar"><span id="hint">برای ویرایش، یک بخش را انتخاب کن یا بخش جدید بساز.</span><button id="addText">＋ متن</button><button id="addImage">＋ تصویر</button><button id="addGallery">＋ گالری</button><button id="draft">ذخیره پیش‌نویس</button><button id="publish" class="publish">انتشار آزمایشی</button><button id="delete">حذف بخش</button><button id="exit" class="exit">خروج</button></div>
+<input id="fileInput" type="file" accept="image/*" multiple hidden>
 <script>
-const $=id=>document.getElementById(id), panel=$('panel'), overlay=$('overlay');
-function toggle(open){panel.classList.toggle('open',open);overlay.classList.toggle('show',open)}
-$('openPanel').onclick=()=>toggle(true);$('closePanel').onclick=()=>toggle(false);overlay.onclick=()=>toggle(false);
-function apply(){document.body.style.setProperty('--page-bg',$('bg').value);document.body.style.setProperty('--page-color',$('color').value);$('canvas').querySelector('strong').textContent=$('heading').value;$('canvas').querySelector('div').lastChild.textContent=$('description').value;localStorage.setItem('qotb-playground',JSON.stringify({bg:$('bg').value,color:$('color').value,heading:$('heading').value,description:$('description').value}))}
-['bg','color','heading','description'].forEach(id=>$(id).addEventListener('input',apply));
-try{const saved=JSON.parse(localStorage.getItem('qotb-playground'));if(saved){Object.entries(saved).forEach(([k,v])=>{if($(k))$(k).value=v});apply()}}catch{}
-$('reset').onclick=()=>{localStorage.removeItem('qotb-playground');$('bg').value='#f4f5f7';$('color').value='#20242b';$('heading').value='صفحهٔ آزمایشی جدید';$('description').value='این فضا عمداً خالی است؛ طراحی را از صفر اینجا امتحان می‌کنیم.';apply()};
-</script>
-</body>
-</html>
+(()=>{'use strict';
+const API='https://qotb-admin.qotb-panel.workers.dev', PREFIX='playground-', $=id=>document.getElementById(id);
+let token=sessionStorage.getItem('qotb_playground_admin')||'', selected=null, selectedKind='text', records=[];
+const stage=$('stage'), toolbar=$('toolbar'), login=$('login'), file=$('fileInput');
+function hint(t){$('hint').textContent=t}
+async function request(path,opts={}){const r=await fetch(API+path,{...opts,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{}),...(opts.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'ارتباط با سرور برقرار نشد');return d}
+function adminMode(){document.body.classList.add('admin-on');toolbar.style.display='flex';$('openManage').style.display='none';login.style.display='none'}
+function leave(){sessionStorage.removeItem('qotb_playground_admin');token='';location.href=location.pathname}
+async function loginNow(){try{ $('loginerr').textContent='در حال بررسی…';const d=await request('/api/login',{method:'POST',body:JSON.stringify({password:$('password').value})});token=d.token;sessionStorage.setItem('qotb_playground_admin',token);adminMode();await loadAdmin()}catch(e){$('loginerr').textContent=e.message}}
+function id(){return 'pg-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)}
+function addBlock(kind,value=''){
+ $('empty')?.remove();const el=document.createElement('div');el.className='block';el.id=id();el.dataset.kind=kind;
+ if(kind==='text'){el.textContent=value||'متن جدید؛ برای ویرایش کلیک کن';el.style.fontSize='20px'}
+ if(kind==='image'){const im=document.createElement('img');if(value)im.src=value;else im.alt='برای انتخاب تصویر، بخش را انتخاب و افزودن تصویر را بزن';el.append(im)}
+ if(kind==='gallery'){el.classList.add('gallery');(Array.isArray(value)?value:[]).forEach(src=>{const im=document.createElement('img');im.src=src;el.append(im)})}
+ stage.append(el);select(el);return el
+}
+function select(el){if(selected){selected.classList.remove('selected');selected.contentEditable='false'}selected=el;selectedKind=el?.dataset.kind||'text';if(el){el.classList.add('selected');hint('بخش انتخاب شد. برای متن روی خود متن کلیک کن؛ برای تصویر یا گالری از دکمهٔ مربوط استفاده کن.')}else hint('برای ویرایش، یک بخش را انتخاب کن.')}
+stage.addEventListener('click',e=>{if(!document.body.classList.contains('admin-on'))return;const el=e.target.closest('.block');if(el){select(el);if(el.dataset.kind==='text'){el.contentEditable='true';el.focus()}}});
+function fileToData(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f)})}
+async function chooseFiles(kind){if(!selected){hint('اول یک بخش را انتخاب کن.');return}selectedKind=kind;file.value='';file.click()}
+file.addEventListener('change',async()=>{if(!selected||!file.files.length)return;try{hint('در حال آماده‌سازی تصویر…');const arr=await Promise.all([...file.files].map(fileToData));if(selectedKind==='image'){const img=selected.querySelector('img')||document.createElement('img');img.src=arr[0];if(!img.parentNode)selected.append(img)}else{selected.classList.add('gallery');arr.forEach(src=>{const img=document.createElement('img');img.src=src;selected.append(img)})}hint('تصویر اضافه شد؛ برای ثبت، ذخیره پیش‌نویس یا انتشار آزمایشی را بزن.')}catch(e){hint('خطا در خواندن تصویر: '+e.message)}});
+function valueOf(el){if(el.dataset.kind==='text')return el.textContent;if(el.dataset.kind==='image')return el.querySelector('img')?.src||'';return [...el.querySelectorAll('img')].map(x=>x.src)}
+async function save(status){if(!selected){hint('اول یک بخش را انتخاب کن.');return}const value=valueOf(selected);if(!value||(Array.isArray(value)&&!value.length)){hint('اول محتوا اضافه کن.');return}const body={id:PREFIX+selected.id,section:'playground',title:'بخش آزمایشی '+selected.dataset.kind,status,data:{selector:'#'+selected.id,kind:selected.dataset.kind,value}};try{hint('در حال ذخیره…');await request('/api/content/'+encodeURIComponent(body.id),{method:'PUT',body:JSON.stringify(body)});hint(status==='published'?'تغییر در محیط آزمایشی منتشر شد.':'پیش‌نویس با موفقیت ذخیره شد.')}catch(e){hint('ذخیره انجام نشد: '+e.message)}}
+function renderRecord(item){const d=item.data||{};if(!d.kind)return;const el=addBlock(d.kind,d.value);if(d.kind==='image'&&typeof d.value==='string')el.querySelector('img').src=d.value;if(d.kind==='gallery'&&Array.isArray(d.value)){el.innerHTML='';d.value.forEach(src=>{const im=document.createElement('img');im.src=src;el.append(im)})}el.id=(d.selector||'').replace('#','')||id();el.classList.remove('selected');selected=null}
+async function loadAdmin(){try{const d=await request('/api/content');records=(d.items||[]).filter(x=>String(x.id||'').startsWith(PREFIX));if(records.length){$('empty')?.remove();records.forEach(renderRecord);hint('محتوای ذخیره‌شدهٔ محیط آزمایشی بارگذاری شد.')}else hint('محیط آماده است؛ یک متن، تصویر یا گالری اضافه کن.')}catch(e){hint('ورود موفق بود، اما دریافت پیش‌نویس‌ها انجام نشد: '+e.message)}}
+async function loadPublished(){try{const r=await fetch(API+'/api/public-content',{cache:'no-store'});const d=await r.json();(d.items||[]).filter(x=>String(x.id||'').startsWith(PREFIX)).forEach(renderRecord)}catch(e){console.warn(e)}}
+$('openManage').onclick=()=>{login.style.display='flex';$('password').focus()};$('loginBtn').onclick=loginNow;$('password').addEventListener('keydown',e=>{if(e.key==='Enter')loginNow()});
+$('addText').onclick=()=>addBlock('text');$('addImage').onclick=()=>{const el=selected||addBlock('image');if(el.dataset.kind!=='image')select(addBlock('image'));chooseFiles('image')};
+$('addGallery').onclick=()=>{const el=selected?.dataset.kind==='gallery'?selected:addBlock('gallery');select(el);chooseFiles('gallery')};
+$('draft').onclick=()=>save('draft');$('publish').onclick=()=>{if(confirm('این تغییر فقط در محیط آزمایشی منتشر شود؟'))save('published')};
+$('delete').onclick=async()=>{if(!selected)return;const el=selected;try{const key=PREFIX+el.id;await request('/api/content/'+encodeURIComponent(key),{method:'DELETE'});el.remove();selected=null;hint('بخش از صفحه و داده‌های آزمایشی حذف شد.')}catch(e){hint('حذف از سرور انجام نشد: '+e.message)}};
+$('exit').onclick=leave;
+if(new URLSearchParams(location.search).get('manage')==='1'){if(token){adminMode();loadAdmin()}else login.style.display='flex'}else loadPublished();
+})();
+</script></body></html>
