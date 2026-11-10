@@ -1242,7 +1242,8 @@ function renderImageList(target,images,admin){
     photo.dataset.qotbGalleryPhoto='1';
     photo.src=list[index];
     photo.alt='تصویر گالری '+(index+1);
-    photo.loading='lazy';
+    photo.loading='eager';
+    photo.decoding='async';
     photo.draggable=false;
     photo.style.cssText='display:block;width:100%;height:100%;min-height:170px;object-fit:cover;border-radius:16px;cursor:zoom-in';
     photo.addEventListener('click',ev=>{
@@ -1442,9 +1443,32 @@ async function save(status){
  }
  catch(e){document.getElementById('qa-hint').textContent='خطا: '+e.message}
 }
+let publicLoadPromise=null;
 async function loadPublic(){
- try{const response=await fetch(API+'/api/public-content',{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);const d=await response.json();publishedItems=Array.isArray(d.items)?d.items:[];applyPublished()}
- catch(e){const hint=document.getElementById('qa-hint');if(hint)hint.textContent='اتصال محتوای منتشرشده برقرار نشد.'}
+ if(publicLoadPromise)return publicLoadPromise;
+ publicLoadPromise=(async()=>{
+  let lastError=null;
+  for(let attempt=0;attempt<3;attempt++){
+   try{
+    const response=await fetch(API+'/api/public-content',{cache:'no-store',mode:'cors',credentials:'omit'});
+    if(!response.ok)throw new Error('HTTP '+response.status);
+    const d=await response.json();
+    if(!d||!Array.isArray(d.items))throw new Error('پاسخ محتوای منتشرشده معتبر نیست');
+    publishedItems=d.items;
+    applyPublished();
+    return true;
+   }catch(e){
+    lastError=e;
+    if(attempt<2)await new Promise(resolve=>setTimeout(resolve,700*(attempt+1)));
+   }
+  }
+  console.warn('Qotb public content could not be loaded:',lastError);
+  const hint=document.getElementById('qa-hint');
+  if(hint)hint.textContent='دریافت عکس‌ها با مشکل روبه‌رو شد؛ اتصال اینترنت را بررسی و صفحه را دوباره باز کن.';
+  return false;
+ })();
+ try{return await publicLoadPromise}
+ finally{publicLoadPromise=null}
 }
 function applyPublished(){
  /* هنگام ویرایش، هیچ دادهٔ منتشرشده‌ای نباید پیش‌نمایش را بازنویسی کند. */
@@ -1483,7 +1507,6 @@ function applyPublished(){
   if(didApply)appliedPublishedData.set(el,d);
  }
 }
-document.addEventListener('DOMContentLoaded',loadPublic);
 const observer=new MutationObserver(()=>{if(window.__qotbApplyTimer)clearTimeout(window.__qotbApplyTimer);window.__qotbApplyTimer=setTimeout(applyPublished,180)});
 observer.observe(document.documentElement,{childList:true,subtree:true});
 document.getElementById('qa-login-btn').addEventListener('click',loginNow);
