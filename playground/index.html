@@ -1062,6 +1062,6 @@ $('qotbImageInput').onchange=async e=>{const file=e.target.files?.[0];if(file&&p
 $('qotbSaveDraft').onclick=()=>persist('draft');$('qotbPublish').onclick=()=>persist('published');
 $('qotbDelete').onclick=()=>{if(!selected)return status('اول یک کادر تصویر را انتخاب کن.');const im=selected.querySelector('img');if(im)im.remove();savePatch(selected,'delete-image',true);status('عکس از کادر حذف شد؛ برای ثبت نهایی پیش‌نویس را ذخیره کن.')};
 $('qotbExit').onclick=()=>{sessionStorage.removeItem(KEY);token='';location.href=location.pathname};
-if(new URLSearchParams(location.search).get('manage')==='1'){if(token){enter()}else $('qotbAdminLogin').style.display='flex'}else{setTimeout(()=>load(),900)}
+if(new URLSearchParams(location.search).get('manage')==='1'){if(token){enter()}else $('qotbAdminLogin').style.display='flex'}else if(new URLSearchParams(location.search).get('admin-preview')!=='1'){setTimeout(()=>load(),900)}
 })();
 </script></body></html>
