@@ -1069,19 +1069,67 @@ function chooseText(el){
 function renderImageList(target,images,admin){
  if(target.classList.contains('blank-gallery')){
   target.classList.add('qotb-image-gallery');
-  const slots=[...target.querySelectorAll(':scope > .blank')];
-  while(slots.length<8){const slot=document.createElement('div');slot.className='blank';slot.textContent='محل عکس';target.insertBefore(slot,target.querySelector(':scope > .qotb-inline-add')) ;slots.push(slot)}
-  slots.forEach((slot,index)=>{
-   slot.replaceChildren();
+  /* هشت خانهٔ اصلی گالری را نگه می‌داریم؛ فقط محتوای داخل هر خانه عوض می‌شود. */
+  const slots=Array.from(target.children).filter(el=>el.classList.contains('blank'));
+  while(slots.length<8){
+   const slot=document.createElement('div');
+   slot.className='blank';
+   slot.textContent='محل عکس';
+   target.appendChild(slot);
+   slots.push(slot);
+  }
+  slots.slice(8).forEach(slot=>slot.remove());
+  for(let index=0;index<8;index++){
+   const slot=slots[index];
    slot.classList.add('qotb-gallery-slot');
+   slot.style.position='relative';
+   slot.replaceChildren();
    if(images[index]){
-    const photo=document.createElement('img');photo.src=images[index];photo.alt='تصویر گالری '+(index+1);photo.style.cssText='width:100%;height:100%;min-height:170px;object-fit:cover;border-radius:16px';slot.appendChild(photo);
-    if(admin){const del=document.createElement('button');del.type='button';del.textContent='×';del.title='حذف عکس';del.style.cssText='position:absolute;top:6px;right:6px;z-index:2;border:0;border-radius:50%;background:#b42318;color:#fff;width:26px;height:26px';del.addEventListener('click',ev=>{ev.stopPropagation();images.splice(index,1);selectedValue=images.slice();renderImageList(target,images,true)});slot.style.position='relative';slot.appendChild(del)}
-   }else{slot.textContent='محل عکس';slot.style.position='';}
-  });
-  let add=target.querySelector(':scope > .qotb-inline-add');
-  if(admin&&!add){add=document.createElement('button');add.type='button';add.className='qotb-inline-add';add.textContent='＋ افزودن عکس';add.addEventListener('click',ev=>{ev.stopPropagation();selected=target;selectedKind='image-list';selectedValue=images.slice();openFilePicker()});target.appendChild(add)}
-  if(!admin&&add)add.remove();
+    const photo=document.createElement('img');
+    photo.dataset.qotbGalleryPhoto='1';
+    photo.src=images[index];
+    photo.alt='تصویر گالری '+(index+1);
+    photo.style.cssText='display:block;width:100%;height:100%;min-height:170px;object-fit:cover;border-radius:16px';
+    slot.appendChild(photo);
+    if(admin){
+     const del=document.createElement('button');
+     del.type='button';
+     del.className='qotb-gallery-remove';
+     del.textContent='×';
+     del.title='حذف عکس';
+     del.style.cssText='position:absolute;top:6px;right:6px;z-index:2;border:0;border-radius:50%;background:#b42318;color:#fff;width:26px;height:26px;cursor:pointer';
+     del.addEventListener('click',ev=>{
+      ev.preventDefault();
+      ev.stopPropagation();
+      const next=Array.isArray(selectedValue)?selectedValue.slice():images.slice();
+      next.splice(index,1);
+      selected=target;
+      selectedKind='image-list';
+      selectedValue=next;
+      renderImageList(target,next,true);
+     });
+     slot.appendChild(del);
+    }
+   }else{
+    slot.textContent='محل عکس';
+   }
+  }
+  let add=Array.from(target.children).find(el=>el.classList.contains('qotb-inline-add'));
+  if(admin){
+   if(!add){
+    add=document.createElement('button');
+    add.type='button';
+    add.className='qotb-inline-add';
+    add.textContent='＋ افزودن عکس';
+    target.appendChild(add);
+   }
+   add.onclick=ev=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(selected!==target||selectedKind!=='image-list')chooseImageList(target);
+    openFilePicker();
+   };
+  }else if(add){add.remove()}
   return;
  }
  target.innerHTML='';target.classList.add('qotb-image-gallery');
@@ -1095,13 +1143,24 @@ function renderImageList(target,images,admin){
 function chooseImageList(target){
  if(!target)return;
  if(selected&&selected!==target){selected.contentEditable='false';selected.classList.remove('qotb-edit-selected')}
- selected=target;selectedKind='image-list';const id=makeId(selectorFor(target));const old=publishedItems.find(x=>x.id===id);selectedValue=old&&Array.isArray(old.data?.value)?old.data.value.slice():[];target.classList.add('qotb-edit-selected');renderImageList(target,selectedValue,true);document.getElementById('qa-hint').textContent='چند عکس انتخاب کن؛ بعد ذخیره یا انتشار را بزن.'
+ const keepCurrent=selected===target&&selectedKind==='image-list'&&Array.isArray(selectedValue);
+ const id=makeId(selectorFor(target));
+ const old=publishedItems.find(x=>x.id===id);
+ const next=keepCurrent?selectedValue.slice():(old&&Array.isArray(old.data?.value)?old.data.value.slice():[]);
+ selected=target;
+ selectedKind='image-list';
+ selectedValue=next;
+ target.classList.add('qotb-edit-selected');
+ renderImageList(target,selectedValue,true);
+ document.getElementById('qa-hint').textContent='چند عکس انتخاب کن؛ بعد ذخیره یا انتشار را بزن.'
 }
 function chooseImage(target){if(selected&&selected!==target){selected.contentEditable='false';selected.classList.remove('qotb-edit-selected')}selected=target;selectedKind='image';selectedValue='';selected.classList.add('qotb-edit-selected');document.getElementById('qa-hint').textContent='یک عکس از دستگاه انتخاب کن.';openFilePicker()}
 document.addEventListener('click',function(e){
  if(!manage||tools.contains(e.target)||login.contains(e.target)||!tools.style.display||tools.style.display==='none')return;
+ /* دکمه‌های داخلی گالری باید listener خودشان را اجرا کنند؛ رویداد را اینجا نبلع. */
+ if(e.target.closest&&e.target.closest('.qotb-inline-add,.qotb-gallery-remove'))return;
  const gallery=e.target.closest&&e.target.closest('.blank-gallery');
- if(gallery){e.preventDefault();e.stopPropagation();chooseImageList(gallery);return}
+ if(gallery){e.preventDefault();e.stopPropagation();if(selected!==gallery||selectedKind!=='image-list')chooseImageList(gallery);return}
  const productBox=e.target.closest&&e.target.closest('.product-detail-photo');
  if(productBox){e.preventDefault();e.stopPropagation();chooseImageList(productBox);return}
  const img=e.target.closest&&e.target.closest('img');
@@ -1138,10 +1197,22 @@ async function save(status){
  if(!selected){document.getElementById('qa-hint').textContent='اول روی یک متن یا عکس بزن.';return}
  if(selectedKind==='text')selectedValue=selected.textContent;
  if(selectedKind==='image-list'&&!Array.isArray(selectedValue))selectedValue=[];
- if(!selectedValue||Array.isArray(selectedValue)&&!selectedValue.length){document.getElementById('qa-hint').textContent='اول تغییرت را وارد کن.';return}
+ if(selectedValue===null||selectedValue===undefined||selectedValue===''){document.getElementById('qa-hint').textContent='اول تغییرت را وارد کن.';return}
  const selector=selectorFor(selected);const id=makeId(selector);
  const body={id,section:sectionName(selected),title:(selectedKind==='image-list'?'مجموعه عکس: ':selectedKind==='image'?'تصویر: ':'متن: ')+(selected.textContent||selected.alt||selector).trim().slice(0,90),status,data:{selector,kind:selectedKind,value:selectedValue}};
- try{await request('/api/content/'+id,{method:'PUT',body:JSON.stringify(body)});document.getElementById('qa-hint').textContent=status==='published'?'تغییر منتشر شد و برای بازدیدکنندگان اعمال می‌شود.':'پیش‌نویس ذخیره شد؛ هنوز برای بازدیدکنندگان نمایش داده نمی‌شود.';selected.classList.remove('qotb-edit-selected');selected.contentEditable='false';selected=null;selectedValue='';}
+ try{
+  await request('/api/content/'+id,{method:'PUT',body:JSON.stringify(body)});
+  if(status==='published'){
+   const saved={id,status:'published',data:body.data};
+   const at=publishedItems.findIndex(item=>item.id===id);
+   if(at>=0)publishedItems[at]=saved;else publishedItems.push(saved);
+  }
+  document.getElementById('qa-hint').textContent=status==='published'?'تغییر منتشر شد و برای بازدیدکنندگان اعمال می‌شود.':'پیش‌نویس ذخیره شد؛ هنوز برای بازدیدکنندگان نمایش داده نمی‌شود.';
+  selected.classList.remove('qotb-edit-selected');
+  selected.contentEditable='false';
+  selected=null;
+  selectedValue='';
+ }
  catch(e){document.getElementById('qa-hint').textContent='خطا: '+e.message}
 }
 async function loadPublic(){
