@@ -1102,7 +1102,19 @@ document.addEventListener('DOMContentLoaded',()=>{initializeNavigation();renderC
 </script><script>
 (function(){
 'use strict';
-const API='https://qotb-admin.qotb-panel.workers.dev';
+const API='https://api.mirzaie-qotb.ir';
+const API_FALLBACK='https://qotb-admin.qotb-panel.workers.dev';
+async function apiFetch(path,options={}){
+ let lastError=null;
+ for(const base of [API,API_FALLBACK]){
+  try{
+   const response=await fetch(base+path,options);
+   if(response.status>=500){lastError=new Error('HTTP '+response.status);continue;}
+   return response;
+  }catch(e){lastError=e;}
+ }
+ throw lastError||new Error('ارتباط با سرور انجام نشد');
+}
 const params=new URLSearchParams(location.search);
 const manage=params.get('manage')==='1';
 let token=sessionStorage.getItem('qotb_inline_admin')||'';
@@ -1146,7 +1158,7 @@ function findTextTarget(start){
  return null;
 }
 function showEditor(){login.style.display='none';tools.style.display='flex';document.body.classList.add('qotb-admin-mode');}
-async function request(path,options={}){const response=await fetch(API+path,{...options,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{}),...(options.headers||{})}});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'ارتباط با سرور انجام نشد');return data}
+async function request(path,options={}){const response=await apiFetch(path,{...options,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{}),...(options.headers||{})}});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'ارتباط با سرور انجام نشد');return data}
 async function loginNow(){
  const password=document.getElementById('qa-password').value;
  const err=document.getElementById('qotb-admin-error');err.textContent='در حال بررسی…';
@@ -1450,7 +1462,7 @@ async function loadPublic(){
   let lastError=null;
   for(let attempt=0;attempt<3;attempt++){
    try{
-    const response=await fetch(API+'/api/public-content',{cache:'no-store',mode:'cors',credentials:'omit'});
+    const response=await apiFetch('/api/public-content',{cache:'no-store',mode:'cors',credentials:'omit'});
     if(!response.ok)throw new Error('HTTP '+response.status);
     const d=await response.json();
     if(!d||!Array.isArray(d.items))throw new Error('پاسخ محتوای منتشرشده معتبر نیست');
