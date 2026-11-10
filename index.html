@@ -1127,7 +1127,7 @@ const observer=new MutationObserver(()=>{if(window.__qotbApplyTimer)clearTimeout
 observer.observe(document.documentElement,{childList:true,subtree:true});
 document.getElementById('qa-login-btn').addEventListener('click',loginNow);
 document.getElementById('qa-password').addEventListener('keydown',e=>{if(e.key==='Enter')loginNow()});
-document.getElementById('qa-add-images').addEventListener('click',()=>{const page=document.querySelector('main > .page.active');const gallery=page?.querySelector('.blank-gallery');if(gallery){chooseImageList(gallery);return}const product=page?.querySelector('.product-detail-photo');if(product){chooseImageList(product);return}document.getElementById('qa-hint').textContent='برای افزودن عکس، ابتدا وارد صفحه گالری یا صفحه یکی از محصولات شو.'});
+document.getElementById('qa-add-images').addEventListener('click',()=>{const page=document.querySelector('main > .page.active');const gallery=page?.querySelector('.blank-gallery');if(gallery){chooseImageList(gallery);openFilePicker();return}const product=page?.querySelector('.product-detail-photo');if(product){chooseImageList(product);openFilePicker();return}document.getElementById('qa-hint').textContent='برای افزودن عکس، ابتدا وارد صفحه گالری یا صفحه یکی از محصولات شو.'});
 document.getElementById('qa-draft').addEventListener('click',()=>save('draft'));
 document.getElementById('qa-publish').addEventListener('click',()=>{if(confirm('این تغییر برای همه بازدیدکنندگان سایت نمایش داده شود؟'))save('published')});
 document.getElementById('qa-exit').addEventListener('click',()=>{sessionStorage.removeItem('qotb_inline_admin');token='';location.href=location.pathname});
