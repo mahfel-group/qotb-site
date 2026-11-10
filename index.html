@@ -1017,4 +1017,96 @@ renderQotbCatalog();
 pageIds.push(...QOTB_SUBCATEGORIES.map(x=>x.id),...QOTB_PRODUCTS.map(p=>p.id));
 function renderCatalog(){document.querySelectorAll('[data-product-category]').forEach(grid=>{const category=grid.dataset.productCategory;const products=QOTB_PRODUCTS.filter(p=>p.category===category);if(!products.length)return;grid.innerHTML=products.map(p=>`<article class="catalog-product"><div class="catalog-product-image">${p.image?`<img src="${p.image}" alt="${p.name}" loading="lazy">`:'تصویر محصول'}</div><h3>${p.name}</h3><p>${p.summary||''}</p><a href="tel:+989368622415">استعلام قیمت</a></article>`).join('');});}
 document.addEventListener('DOMContentLoaded',()=>{initializeNavigation();renderCatalog();});
+</script><script>
+(function(){
+'use strict';
+const API='https://qotb-admin.qotb-panel.workers.dev';
+const params=new URLSearchParams(location.search);
+const manage=params.get('manage')==='1';
+let token=sessionStorage.getItem('qotb_inline_admin')||'';
+let selected=null, selectedKind='text', selectedValue='', publishedItems=[];
+const style=document.createElement('style');style.textContent="\n/* QOTB inline administration */\n#qotb-admin-login{position:fixed;inset:0;z-index:99999;background:#080808d9;display:none;align-items:center;justify-content:center;padding:18px;font-family:Vazirmatn,Arial,sans-serif}\n#qotb-admin-login .qa-box{width:min(420px,100%);background:#fff;border-radius:18px;padding:24px;box-shadow:0 20px 70px #0005;color:#111}\n#qotb-admin-login h2{margin:0 0 8px;font-size:20px}#qotb-admin-login p{color:#666;font-size:13px;margin:0 0 14px}\n#qotb-admin-login input{width:100%;padding:13px;border:1px solid #ccc;border-radius:10px;font:inherit;margin:8px 0}\n#qotb-admin-login button,#qotb-admin-tools button{border:0;border-radius:10px;padding:11px 16px;font:inherit;font-weight:700;cursor:pointer}\n#qotb-admin-login button{background:#080808;color:#fff;width:100%;margin-top:8px}\n#qotb-admin-error{color:#b42318;font-size:13px;min-height:22px}\n#qotb-admin-tools{position:fixed;z-index:99990;bottom:14px;left:14px;right:14px;display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#101010f2;color:white;padding:10px 12px;border-radius:14px;box-shadow:0 8px 35px #0004;font-family:Vazirmatn,Arial,sans-serif}\n#qotb-admin-tools .qa-hint{font-size:12px;flex:1;min-width:150px}\n#qotb-admin-tools button{background:#fff;color:#111;font-size:12px}\n#qotb-admin-tools button.qa-publish{background:#d7ad55}\n#qotb-admin-tools button.qa-exit{background:#555;color:#fff}\n.qotb-edit-hover{outline:2px dashed #d4a63e!important;outline-offset:3px;cursor:text!important}\n.qotb-edit-selected{outline:2px solid #168b83!important;outline-offset:3px}\n@media(max-width:600px){#qotb-admin-tools{bottom:8px;left:8px;right:8px}#qotb-admin-tools .qa-hint{flex-basis:100%}}\n";document.head.appendChild(style);
+const login=document.createElement('div');login.id='qotb-admin-login';login.innerHTML='<div class="qa-box"><h2>ورود مدیریت قطب</h2><p>بعد از ورود، روی متن یا عکس موردنظرت بزن تا همان‌جا ویرایشش کنی.</p><input id="qa-password" type="password" placeholder="رمز مدیریت" autocomplete="current-password"><button id="qa-login-btn" type="button">ورود به حالت ویرایش</button><div id="qotb-admin-error"></div></div>';document.body.appendChild(login);
+const tools=document.createElement('div');tools.id='qotb-admin-tools';tools.innerHTML='<span class="qa-hint" id="qa-hint">برای ویرایش، روی متن یا عکس موردنظر بزن.</span><button id="qa-draft" type="button">ذخیره پیش‌نویس</button><button id="qa-publish" class="qa-publish" type="button">انتشار این تغییر</button><button id="qa-exit" class="qa-exit" type="button">خروج</button>';document.body.appendChild(tools);
+const file=document.createElement('input');file.type='file';file.accept='image/*';file.hidden=true;document.body.appendChild(file);
+function selectorFor(el){
+ if(el.id)return '#'+CSS.escape(el.id);
+ const parts=[];let node=el;
+ while(node&&node.nodeType===1&&node!==document.body){
+  if(node.id){parts.unshift('#'+CSS.escape(node.id));break;}
+  let part=node.tagName.toLowerCase();
+  if(node.parentElement){const siblings=[...node.parentElement.children].filter(x=>x.tagName===node.tagName);if(siblings.length>1)part+=':nth-of-type('+(siblings.indexOf(node)+1)+')';}
+  parts.unshift(part);node=node.parentElement;
+ }
+ return parts.join(' > ');
+}
+function makeId(selector){let h=2166136261;for(let i=0;i<selector.length;i++){h^=selector.charCodeAt(i);h=Math.imul(h,16777619)}return 'inline-'+(h>>>0).toString(16)}
+function sectionName(el){const sec=el.closest('section[id]');return sec?sec.id:'general'}
+function findTextTarget(start){
+ let el=start&&start.nodeType===3?start.parentElement:start;
+ while(el&&el!==document.body){
+  if(el.matches('script,style,svg,path,input,textarea,select,option,[contenteditable="true"],#qotb-admin-tools,#qotb-admin-login'))return null;
+  const direct=[...el.childNodes].some(n=>n.nodeType===3&&n.nodeValue.trim());
+  if(direct&&el.textContent.trim())return el;
+  el=el.parentElement;
+ }
+ return null;
+}
+function showEditor(){login.style.display='none';tools.style.display='flex';document.body.classList.add('qotb-admin-mode');}
+async function request(path,options={}){const response=await fetch(API+path,{...options,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{}),...(options.headers||{})}});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'ارتباط با سرور انجام نشد');return data}
+async function loginNow(){
+ const password=document.getElementById('qa-password').value;
+ const err=document.getElementById('qotb-admin-error');err.textContent='در حال بررسی…';
+ try{const data=await request('/api/login',{method:'POST',body:JSON.stringify({password})});token=data.token;sessionStorage.setItem('qotb_inline_admin',token);showEditor();await loadPublic();}
+ catch(e){err.textContent=e.message}
+}
+function chooseText(el){
+ if(selected&&selected!==el){selected.contentEditable='false';selected.classList.remove('qotb-edit-selected')}
+ selected=el;selectedKind='text';selectedValue=el.textContent;el.contentEditable='true';el.focus();el.classList.add('qotb-edit-selected');document.getElementById('qa-hint').textContent='متن را همین‌جا تغییر بده، سپس ذخیره پیش‌نویس یا انتشار را بزن.';
+}
+function chooseImage(img){if(selected&&selected!==img){selected.contentEditable='false';selected.classList.remove('qotb-edit-selected')}selected=img;selectedKind='image';selected.classList.add('qotb-edit-selected');document.getElementById('qa-hint').textContent='یک عکس از دستگاه انتخاب کن.';file.click()}
+document.addEventListener('click',function(e){
+ if(!manage||tools.contains(e.target)||login.contains(e.target)||!tools.style.display||tools.style.display==='none')return;
+ const img=e.target.closest&&e.target.closest('img');
+ if(img){e.preventDefault();e.stopPropagation();chooseImage(img);return}
+ const target=findTextTarget(e.target);
+ if(target){e.preventDefault();e.stopPropagation();chooseText(target)}
+},true);
+document.addEventListener('mouseover',function(e){if(!manage||tools.style.display==='none')return;const t=findTextTarget(e.target);if(t&&!t.classList.contains('qotb-edit-selected'))t.classList.add('qotb-edit-hover')},true);
+document.addEventListener('mouseout',function(e){const t=findTextTarget(e.target);if(t)t.classList.remove('qotb-edit-hover')},true);
+file.addEventListener('change',async()=>{
+ const f=file.files&&file.files[0];if(!f||!selected)return;
+ try{const dataUrl=await compressImage(f);selected.src=dataUrl;selectedValue=dataUrl;document.getElementById('qa-hint').textContent='عکس انتخاب شد؛ برای ثبت، ذخیره یا انتشار را بزن.'}
+ catch(e){document.getElementById('qa-hint').textContent='خواندن عکس ناموفق بود.'}
+ file.value='';
+});
+function compressImage(f){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{const im=new Image();im.onerror=reject;im.onload=()=>{const scale=Math.min(1,1100/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);c.getContext('2d').drawImage(im,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',.72))};im.src=reader.result};reader.readAsDataURL(f)})}
+async function save(status){
+ if(!selected){document.getElementById('qa-hint').textContent='اول روی یک متن یا عکس بزن.';return}
+ if(selectedKind==='text')selectedValue=selected.textContent;
+ if(!selectedValue){document.getElementById('qa-hint').textContent='اول تغییرت را وارد کن.';return}
+ const selector=selectorFor(selected);const id=makeId(selector);
+ const body={id,section:sectionName(selected),title:(selectedKind==='image'?'تصویر: ':'متن: ')+(selected.textContent||selected.alt||selector).trim().slice(0,90),status,data:{selector,kind:selectedKind,value:selectedValue}};
+ try{await request('/api/content/'+id,{method:'PUT',body:JSON.stringify(body)});document.getElementById('qa-hint').textContent=status==='published'?'تغییر منتشر شد و برای بازدیدکنندگان اعمال می‌شود.':'پیش‌نویس ذخیره شد؛ هنوز برای بازدیدکنندگان نمایش داده نمی‌شود.';selected.classList.remove('qotb-edit-selected');selected.contentEditable='false';selected=null;selectedValue='';}
+ catch(e){document.getElementById('qa-hint').textContent='خطا: '+e.message}
+}
+async function loadPublic(){
+ try{const d=await fetch(API+'/api/public-content',{cache:'no-store'}).then(r=>r.json());publishedItems=d.items||[];applyPublished()}
+ catch(e){document.getElementById('qa-hint').textContent='اتصال محتوای منتشرشده برقرار نشد.'}
+}
+function applyPublished(){
+ if(!publishedItems.length)return;
+ for(const item of publishedItems){const d=item.data||{};if(!d.selector||!d.value)continue;let el;try{el=document.querySelector(d.selector)}catch(_){continue}if(!el)continue;if(d.kind==='image'&&el.tagName==='IMG')el.src=d.value;else if(d.kind==='text'&&!el.isContentEditable)el.textContent=d.value}
+}
+document.addEventListener('DOMContentLoaded',loadPublic);
+const observer=new MutationObserver(()=>{if(window.__qotbApplyTimer)clearTimeout(window.__qotbApplyTimer);window.__qotbApplyTimer=setTimeout(applyPublished,180)});
+observer.observe(document.documentElement,{childList:true,subtree:true});
+document.getElementById('qa-login-btn').addEventListener('click',loginNow);
+document.getElementById('qa-password').addEventListener('keydown',e=>{if(e.key==='Enter')loginNow()});
+document.getElementById('qa-draft').addEventListener('click',()=>save('draft'));
+document.getElementById('qa-publish').addEventListener('click',()=>{if(confirm('این تغییر برای همه بازدیدکنندگان سایت نمایش داده شود؟'))save('published')});
+document.getElementById('qa-exit').addEventListener('click',()=>{sessionStorage.removeItem('qotb_inline_admin');token='';location.href=location.pathname});
+if(manage){if(token){showEditor();loadPublic()}else login.style.display='flex'}
+else loadPublic();
+})();
 </script></body></html>
