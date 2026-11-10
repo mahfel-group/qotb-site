@@ -1096,6 +1096,6 @@ $('qotbImageInput').onchange=async e=>{const f=e.target.files;await addFiles(f,p
 $('qotbSaveDraft').onclick=()=>persist('draft');$('qotbPublish').onclick=()=>persist('published');
 $('qotbDelete').onclick=()=>{if(!selected)return status('اول یک بخش را انتخاب کن.');let el=selected;if(el.matches(IMAGE_FRAME_SELECTOR)){if(el.tagName==='IMG'&&el.parentElement?.matches(IMAGE_FRAME_SELECTOR))el=el.parentElement;const path=pathOf(el);patches=patches.filter(p=>!p.path||!(p.path.length>=path.length&&path.every((part,i)=>p.path[i]===part)));if(el.tagName==='IMG'){el.removeAttribute('src');el.style.opacity='0'}else el.replaceChildren();savePatch(el,'image-clear',true);clearSelection();status('عکس حذف شد؛ قاب باقی ماند و می‌توانی دوباره داخلش عکس بارگذاری کنی. برای ثبت نهایی پیش‌نویس را ذخیره کن.');return}const path=pathOf(el);patches=patches.filter(p=>JSON.stringify(p.path)!==JSON.stringify(path));savePatch(el,'delete',true);el.remove();selected=null;status('بخش حذف شد؛ برای ثبت نهایی پیش‌نویس را ذخیره کن.')};
 $('qotbExit').onclick=()=>{sessionStorage.removeItem(KEY);token='';location.href=location.pathname};
-if(new URLSearchParams(location.search).get('manage')==='1'){if(token){enter()}else $('qotbAdminLogin').style.display='flex'}else{setTimeout(()=>load(),900)}
+if(new URLSearchParams(location.search).get('manage')==='1'||location.hash==='#manage'){if(token){enter()}else $('qotbAdminLogin').style.display='flex'}else{setTimeout(()=>load(),900)}
 })();
 </script></body></html>
