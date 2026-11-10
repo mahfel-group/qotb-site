@@ -501,6 +501,22 @@ main > .page.qotb-about{padding-top:0!important;margin-top:0!important;}
 .product-card-arrow, .product-search-arrow { display: none !important; }
 
 
+
+/* QOTB refined single-photo product carousel + full-screen viewer */
+.product-detail-photo.qotb-product-carousel{display:block!important;min-height:0!important;height:auto!important;padding:12px!important;overflow:hidden!important;border-style:solid!important;border-color:#e8e8e8!important;background:#fff!important;}
+.qotb-product-carousel .qotb-product-stage{position:relative!important;width:100%!important;height:clamp(260px,38vw,430px)!important;min-height:0!important;max-width:100%!important;margin:0 auto!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;border-radius:16px!important;background:#f7f7f7!important;}
+.qotb-product-carousel .qotb-product-stage .qotb-gallery-main{display:block!important;width:100%!important;height:100%!important;max-height:none!important;object-fit:contain!important;padding:8px!important;box-sizing:border-box!important;cursor:zoom-in!important;background:transparent!important;}
+.qotb-product-carousel .qotb-photo-arrow{top:50%!important;width:34px!important;height:34px!important;min-width:34px!important;display:grid!important;place-items:center!important;border:0!important;border-radius:50%!important;background:#171717b8!important;color:#fff!important;font:23px/1 Arial,sans-serif!important;z-index:5!important;}
+.qotb-product-carousel .qotb-photo-prev{left:auto!important;right:10px!important}.qotb-product-carousel .qotb-photo-next{right:auto!important;left:10px!important}
+.qotb-product-carousel .qotb-photo-count{bottom:10px!important;left:50%!important;transform:translateX(-50%)!important;padding:5px 10px!important;border-radius:20px!important;background:#171717b8!important;color:#fff!important;font:12px Arial,sans-serif!important;z-index:4!important}
+.qotb-product-carousel .qotb-inline-add{display:inline-block!important;margin-top:10px!important}
+.qotb-image-gallery .qotb-gallery-slot img{cursor:zoom-in!important}
+#qotb-photo-lightbox{z-index:100000!important}
+#qotb-photo-lightbox>img{max-width:calc(100vw - 120px)!important;max-height:calc(100vh - 110px)!important;object-fit:contain!important}
+#qotb-photo-lightbox .qotb-lightbox-arrow{width:36px!important;height:36px!important;min-width:36px!important;display:grid!important;place-items:center!important;background:#ffffff30!important;color:#fff!important;border:1px solid #ffffff55!important;z-index:6!important}
+#qotb-photo-lightbox .qotb-lightbox-prev{right:16px!important;left:auto!important}#qotb-photo-lightbox .qotb-lightbox-next{left:16px!important;right:auto!important}
+@media(max-width:700px){.qotb-product-carousel .qotb-product-stage{height:300px!important}.product-detail-photo.qotb-product-carousel{padding:8px!important}#qotb-photo-lightbox{padding:58px 44px!important}#qotb-photo-lightbox>img{max-width:calc(100vw - 88px)!important;max-height:calc(100vh - 116px)!important}}
+
 /* Qotb photo viewer and product carousel */
 .qotb-product-carousel{display:block!important;min-height:0!important;padding:12px;box-sizing:border-box}
 .qotb-product-stage{height:390px;max-width:100%;position:relative;display:flex;align-items:center;justify-content:center;background:#f7f7f7;border-radius:16px;overflow:hidden}
@@ -1268,8 +1284,14 @@ function renderImageList(target,images,admin){
  let currentIndex=0;
  const stage=document.createElement('div');
  stage.className='qotb-product-stage';
- stage.setAttribute('aria-label','نمایش تصاویر محصول');
- target.appendChild(stage);
+ stage.setAttribute('role','group');
+ stage.setAttribute('aria-label','گالری تصاویر محصول');
+ let touchStartX=0;
+ const change=delta=>{
+  if(list.length<2)return;
+  currentIndex=(currentIndex+delta+list.length)%list.length;
+  showPhoto();
+ };
  const showPhoto=()=>{
   stage.replaceChildren();
   if(!list.length){
@@ -1282,19 +1304,24 @@ function renderImageList(target,images,admin){
   const photo=document.createElement('img');
   photo.className='qotb-gallery-main';
   photo.src=list[currentIndex];
-  photo.alt='تصویر محصول '+(currentIndex+1);
+  photo.alt='تصویر '+(currentIndex+1)+' از تصاویر محصول';
+  photo.loading='eager';
   photo.draggable=false;
+  photo.tabIndex=0;
+  photo.setAttribute('role','button');
+  photo.setAttribute('aria-label','نمایش تمام‌صفحه تصویر محصول');
   photo.addEventListener('click',()=>openQotbLightbox(list,currentIndex));
+  photo.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();openQotbLightbox(list,currentIndex)}});
   stage.appendChild(photo);
   if(list.length>1){
    const prev=document.createElement('button');
    prev.type='button';prev.className='qotb-photo-arrow qotb-photo-prev';prev.textContent='‹';
    prev.setAttribute('aria-label','عکس قبلی');
-   prev.onclick=()=>{currentIndex=(currentIndex-1+list.length)%list.length;showPhoto()};
+   prev.onclick=()=>change(-1);
    const next=document.createElement('button');
    next.type='button';next.className='qotb-photo-arrow qotb-photo-next';next.textContent='›';
    next.setAttribute('aria-label','عکس بعدی');
-   next.onclick=()=>{currentIndex=(currentIndex+1)%list.length;showPhoto()};
+   next.onclick=()=>change(1);
    stage.append(prev,next);
    const count=document.createElement('span');
    count.className='qotb-photo-count';
@@ -1313,6 +1340,14 @@ function renderImageList(target,images,admin){
    stage.appendChild(del);
   }
  };
+ stage.addEventListener('touchstart',ev=>{touchStartX=ev.touches&&ev.touches[0]?ev.touches[0].clientX:0},{passive:true});
+ stage.addEventListener('touchend',ev=>{
+  const endX=ev.changedTouches&&ev.changedTouches[0]?ev.changedTouches[0].clientX:touchStartX;
+  const delta=endX-touchStartX;
+  if(Math.abs(delta)>45)change(delta<0?1:-1);
+  touchStartX=0;
+ },{passive:true});
+ target.appendChild(stage);
  showPhoto();
  if(admin){
   const add=document.createElement('button');
