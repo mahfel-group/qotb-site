@@ -1462,13 +1462,15 @@ async function save(status){
  catch(e){document.getElementById('qa-hint').textContent='خطا: '+e.message}
 }
 let publicLoadPromise=null;
+let galleryLoadPromise=null;
+let galleryLoaded=false;
 async function loadPublic(){
  if(publicLoadPromise)return publicLoadPromise;
  publicLoadPromise=(async()=>{
   let lastError=null;
   for(let attempt=0;attempt<2;attempt++){
    try{
-    const response=await apiFetch('/api/public-content',{cache:'no-store',mode:'cors',credentials:'omit'});
+    const response=await apiFetch('/api/public-content?excludeImageListSection=gallery',{cache:'default',mode:'cors',credentials:'omit'});
     if(!response.ok)throw new Error('HTTP '+response.status);
     const d=await response.json();
     if(!d||!Array.isArray(d.items))throw new Error('پاسخ محتوای منتشرشده معتبر نیست');
@@ -1482,11 +1484,38 @@ async function loadPublic(){
   }
   console.warn('Qotb public content could not be loaded:',lastError);
   const hint=document.getElementById('qa-hint');
-  if(hint)hint.textContent='دریافت عکس‌ها با مشکل روبه‌رو شد؛ اتصال اینترنت را بررسی و صفحه را دوباره باز کن.';
+  if(hint)hint.textContent='دریافت محتوای سایت با مشکل روبه‌رو شد؛ اتصال اینترنت را بررسی و صفحه را دوباره باز کن.';
   return false;
  })();
  try{return await publicLoadPromise}
  finally{publicLoadPromise=null}
+}
+async function loadPublicSection(section){
+ if(section!=='gallery')return false;
+ if(galleryLoaded)return true;
+ const baseLoaded=await loadPublic();
+ if(!baseLoaded)return false;
+ if(galleryLoadPromise)return galleryLoadPromise;
+ galleryLoadPromise=(async()=>{
+  const response=await apiFetch('/api/public-content?section=gallery',{cache:'default',mode:'cors',credentials:'omit'});
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  const d=await response.json();
+  if(!d||!Array.isArray(d.items))throw new Error('پاسخ تصاویر گالری معتبر نیست');
+  for(const item of d.items){
+   const at=publishedItems.findIndex(existing=>existing.id===item.id);
+   if(at>=0)publishedItems[at]=item;
+   else publishedItems.push(item);
+  }
+  galleryLoaded=true;
+  applyPublished();
+  return true;
+ })();
+ try{return await galleryLoadPromise}
+ catch(e){
+  console.warn('Qotb gallery content could not be loaded:',e);
+  return false;
+ }
+ finally{galleryLoadPromise=null}
 }
 function applyPublished(){
  /* هنگام ویرایش، هیچ دادهٔ منتشرشده‌ای نباید پیش‌نمایش را بازنویسی کند. */
@@ -1529,6 +1558,14 @@ let applyTimer=0;
 const observer=new MutationObserver(()=>{clearTimeout(applyTimer);applyTimer=setTimeout(applyPublished,220)});
 const observeRoot=document.querySelector('main')||document.body;
 observer.observe(observeRoot,{childList:true,subtree:true});
+const galleryPage=document.getElementById('gallery');
+if(galleryPage){
+ const galleryPageObserver=new MutationObserver(()=>{
+  if(galleryPage.classList.contains('active'))loadPublicSection('gallery');
+ });
+ galleryPageObserver.observe(galleryPage,{attributes:true,attributeFilter:['class']});
+ if(galleryPage.classList.contains('active'))loadPublicSection('gallery');
+}
 document.getElementById('qa-login-btn').addEventListener('click',loginNow);
 document.getElementById('qa-password').addEventListener('keydown',e=>{if(e.key==='Enter')loginNow()});
 document.getElementById('qa-add-images').addEventListener('click',()=>{const page=document.querySelector('main > .page.active');const gallery=page?.querySelector('.blank-gallery');if(gallery){chooseImageList(gallery);openFilePicker();return}const product=page?.querySelector('.product-detail-photo');if(product){chooseImageList(product);openFilePicker();return}document.getElementById('qa-hint').textContent='برای افزودن عکس، ابتدا وارد صفحه گالری یا صفحه یکی از محصولات شو.'});
