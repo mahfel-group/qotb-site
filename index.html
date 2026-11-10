@@ -1128,7 +1128,7 @@ const appliedPublishedData=new WeakMap();
 const locallyEditedTargets=new WeakMap();
 const style=document.createElement('style');style.textContent="\n.qotb-image-gallery{display:flex!important;flex-direction:column;gap:10px;padding:12px!important;min-height:250px}.blank-gallery.qotb-image-gallery{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));align-items:start}.qotb-gallery-tile{position:relative;min-width:0}.qotb-gallery-tile img{width:100%;height:210px;object-fit:cover;border-radius:12px}.qotb-gallery-tile button{position:absolute;top:6px;right:6px;border:0;border-radius:50%;background:#b42318;color:#fff;width:25px;height:25px;cursor:pointer}.blank-gallery.qotb-image-gallery .qotb-inline-add,.blank-gallery.qotb-image-gallery .qotb-gallery-empty{grid-column:1/-1}@media(max-width:700px){.blank-gallery.qotb-image-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}.qotb-gallery-main{width:100%;height:300px;object-fit:contain;background:#f7f7f7;border-radius:12px}.qotb-gallery-thumbs{display:flex;gap:8px;flex-wrap:wrap}.qotb-thumb-wrap{position:relative}.qotb-thumb-wrap img{width:72px;height:64px;object-fit:cover;border:1px solid #ddd;border-radius:8px;cursor:pointer}.qotb-thumb-wrap button{position:absolute;top:-6px;right:-6px;border:0;border-radius:50%;background:#b42318;color:#fff;width:22px;height:22px;cursor:pointer}.qotb-gallery-empty{padding:45px 12px;text-align:center;color:#888}.qotb-inline-add{border:1px dashed #888!important;border-radius:9px;padding:9px!important;background:#fff!important;color:#111!important;font:inherit;cursor:pointer}.qotb-edit-selected.qotb-image-gallery{outline:2px solid #168b83!important}\n/* QOTB inline administration */\n#qotb-admin-login{position:fixed;inset:0;z-index:99999;background:#080808d9;display:none;align-items:center;justify-content:center;padding:18px;font-family:Vazirmatn,Arial,sans-serif}\n#qotb-admin-login .qa-box{width:min(420px,100%);background:#fff;border-radius:18px;padding:24px;box-shadow:0 20px 70px #0005;color:#111}\n#qotb-admin-login h2{margin:0 0 8px;font-size:20px}#qotb-admin-login p{color:#666;font-size:13px;margin:0 0 14px}\n#qotb-admin-login input{width:100%;padding:13px;border:1px solid #ccc;border-radius:10px;font:inherit;margin:8px 0}\n#qotb-admin-login button,#qotb-admin-tools button{border:0;border-radius:10px;padding:11px 16px;font:inherit;font-weight:700;cursor:pointer}\n#qotb-admin-login button{background:#080808;color:#fff;width:100%;margin-top:8px}\n#qotb-admin-error{color:#b42318;font-size:13px;min-height:22px}\n#qotb-admin-tools{position:fixed;z-index:99990;bottom:14px;left:14px;right:14px;display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#101010f2;color:white;padding:10px 12px;border-radius:14px;box-shadow:0 8px 35px #0004;font-family:Vazirmatn,Arial,sans-serif}\n#qotb-admin-tools .qa-hint{font-size:12px;flex:1;min-width:150px}\n#qotb-admin-tools button{background:#fff;color:#111;font-size:12px}\n#qotb-admin-tools button.qa-publish{background:#d7ad55}\n#qotb-admin-tools button.qa-exit{background:#555;color:#fff}\n.qotb-edit-hover{outline:2px dashed #d4a63e!important;outline-offset:3px;cursor:text!important}\n.qotb-edit-selected{outline:2px solid #168b83!important;outline-offset:3px}\n@media(max-width:600px){#qotb-admin-tools{bottom:8px;left:8px;right:8px}#qotb-admin-tools .qa-hint{flex-basis:100%}}\n";document.head.appendChild(style);
 const login=document.createElement('div');login.id='qotb-admin-login';login.innerHTML='<div class="qa-box"><h2>ورود مدیریت قطب</h2><p>بعد از ورود، روی متن یا عکس موردنظرت بزن تا همان‌جا ویرایشش کنی.</p><input id="qa-password" type="password" placeholder="رمز مدیریت" autocomplete="current-password"><button id="qa-login-btn" type="button">ورود به حالت ویرایش</button><div id="qotb-admin-error"></div></div>';document.body.appendChild(login);
-const tools=document.createElement('div');tools.id='qotb-admin-tools';tools.innerHTML='<span class="qa-hint" id="qa-hint">برای ویرایش، روی متن یا عکس موردنظر بزن.</span><button id="qa-add-images" type="button">＋ افزودن عکس</button><button id="qa-draft" type="button">ذخیره پیش‌نویس</button><button id="qa-publish" class="qa-publish" type="button">انتشار این تغییر</button><button id="qa-exit" class="qa-exit" type="button">خروج</button>';document.body.appendChild(tools);
+const tools=document.createElement('div');tools.id='qotb-admin-tools';tools.innerHTML='<span class="qa-hint" id="qa-hint">برای ویرایش، روی متن یا عکس موردنظر بزن.</span><button id="qa-add-images" type="button">＋ افزودن عکس</button><button id="qa-optimize-gallery" type="button">⚡ بهینه‌سازی تصاویر گالری</button><button id="qa-draft" type="button">ذخیره پیش‌نویس</button><button id="qa-publish" class="qa-publish" type="button">انتشار این تغییر</button><button id="qa-exit" class="qa-exit" type="button">خروج</button>';document.body.appendChild(tools);
 const file=document.createElement('input');file.type='file';file.accept='image/*';file.multiple=true;file.style.cssText='position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0;pointer-events:none';file.tabIndex=-1;file.setAttribute('aria-hidden','true');document.body.appendChild(file);
 function openFilePicker(){
  file.value='';
@@ -1258,9 +1258,8 @@ function renderImageList(target,images,admin){
     photo.dataset.qotbGalleryPhoto='1';
     photo.src=list[index];
     photo.alt='تصویر گالری '+(index+1);
-    photo.loading='eager';
+    photo.loading=index<4?'eager':'lazy';
     photo.decoding='async';
-    if(typeof photo.decode==='function')photo.decode().catch(()=>{});
     photo.draggable=false;
     photo.style.cssText='display:block;width:100%;height:100%;min-height:170px;object-fit:cover;border-radius:16px;cursor:zoom-in';
     photo.addEventListener('click',ev=>{
@@ -1430,6 +1429,62 @@ file.addEventListener('change',async()=>{
  finally{file.value=''}
 });
 function compressImage(f){return new Promise((resolve,reject)=>{if(f.size>12000000){reject(new Error('حجم عکس بیشتر از ۱۲ مگابایت است.'));return}const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{const im=new Image();im.onerror=reject;im.onload=()=>{let scale=Math.min(1,900/Math.max(im.width,im.height)),url='';for(let attempt=0;attempt<8;attempt++){const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*scale));c.height=Math.max(1,Math.round(im.height*scale));c.getContext('2d').drawImage(im,0,0,c.width,c.height);url=c.toDataURL('image/jpeg',Math.max(.38,.68-attempt*.05));if(url.length<180000)break;scale*=.82}if(url.length>=180000){reject(new Error('حجم عکس پس از فشرده‌سازی هنوز زیاد است.'));return}resolve(url)};im.src=reader.result};reader.readAsDataURL(f)})}
+function compressGalleryImage(source){
+ return new Promise((resolve,reject)=>{
+  const image=new Image();
+  image.onerror=()=>reject(new Error('خواندن یکی از تصاویر گالری ناموفق بود.'));
+  image.onload=()=>{
+   try{
+    const maxDimension=640;
+    const scale=Math.min(1,maxDimension/Math.max(image.naturalWidth||image.width,image.naturalHeight||image.height));
+    const width=Math.max(1,Math.round((image.naturalWidth||image.width)*scale));
+    const height=Math.max(1,Math.round((image.naturalHeight||image.height)*scale));
+    const canvas=document.createElement('canvas');
+    canvas.width=width;canvas.height=height;
+    const context=canvas.getContext('2d');
+    if(!context)throw new Error('امکان فشرده‌سازی تصویر در این مرورگر فراهم نیست.');
+    context.drawImage(image,0,0,width,height);
+    const output=canvas.toDataURL('image/jpeg',0.58);
+    resolve(output.length<source.length?output:source);
+   }catch(error){reject(error)}
+  };
+  image.src=source;
+ });
+}
+async function optimizeGalleryImages(){
+ const hint=document.getElementById('qa-hint');
+ try{
+  if(!manage||!token)throw new Error('ابتدا وارد مدیریت شو.');
+  if(selected)throw new Error('اول تغییر فعلی را ذخیره یا لغو کن.');
+  if(!publishedItems.length)await loadPublic();
+  const item=publishedItems.find(entry=>entry.section==='gallery'&&entry.data&&entry.data.kind==='image-list'&&Array.isArray(entry.data.value));
+  if(!item)throw new Error('مجموعه تصاویر گالری پیدا نشد.');
+  if(item.data.optimizationVersion===1){hint.textContent='تصاویر گالری قبلاً بهینه شده‌اند.';return}
+  const photos=item.data.value.filter(Boolean);
+  if(!photos.length)throw new Error('تصویری برای بهینه‌سازی وجود ندارد.');
+  if(!confirm('برای سبک‌تر شدن گالری، عکس‌ها به حداکثر ۶۴۰ پیکسل و کیفیت ۵۸٪ تبدیل می‌شوند. نسخهٔ قبلی در تاریخچهٔ سرور ذخیره خواهد شد. ادامه می‌دهی؟'))return;
+  const optimized=[];
+  for(let index=0;index<photos.length;index++){
+   hint.textContent='در حال بهینه‌سازی تصویر '+(index+1)+' از '+photos.length+'…';
+   optimized.push(await compressGalleryImage(photos[index]));
+  }
+  const before=photos.reduce((sum,value)=>sum+value.length,0);
+  const after=optimized.reduce((sum,value)=>sum+value.length,0);
+  if(after>=before*0.92){hint.textContent='حجم تصاویر به‌اندازه کافی کاهش پیدا نکرد؛ عکس‌های اصلی حفظ شدند.';return}
+  const data={...item.data,value:optimized,optimizationVersion:1};
+  const body={id:item.id,section:item.section,title:item.title,status:'published',data};
+  hint.textContent='در حال ذخیره نسخهٔ سبک‌تر و ثبت نسخهٔ قبلی در تاریخچه…';
+  await request('/api/content/'+encodeURIComponent(item.id),{method:'PUT',body:JSON.stringify(body)});
+  const index=publishedItems.findIndex(entry=>entry.id===item.id);
+  if(index>=0)publishedItems[index]={...item,status:'published',data};
+  appliedPublishedData.delete(document.querySelector(item.data.selector));
+  applyPublished();
+  const saved=Math.round((1-after/before)*100);
+  hint.textContent='بهینه‌سازی انجام شد؛ حجم تصاویر گالری حدود '+saved+'٪ کمتر شد. نسخهٔ قبلی در تاریخچهٔ سرور ذخیره شد.';
+ }catch(error){
+  hint.textContent='بهینه‌سازی انجام نشد: '+(error.message||'خطای نامشخص');
+ }
+}
 async function save(status){
  if(!selected){document.getElementById('qa-hint').textContent='اول روی یک متن یا عکس بزن.';return}
  if(selectedKind==='text')selectedValue=selected.textContent;
@@ -1462,15 +1517,13 @@ async function save(status){
  catch(e){document.getElementById('qa-hint').textContent='خطا: '+e.message}
 }
 let publicLoadPromise=null;
-let galleryLoadPromise=null;
-let galleryLoaded=false;
 async function loadPublic(){
  if(publicLoadPromise)return publicLoadPromise;
  publicLoadPromise=(async()=>{
   let lastError=null;
   for(let attempt=0;attempt<2;attempt++){
    try{
-    const response=await apiFetch('/api/public-content?excludeImageListSection=gallery',{cache:'default',mode:'cors',credentials:'omit'});
+    const response=await apiFetch('/api/public-content',{cache:'no-store',mode:'cors',credentials:'omit'});
     if(!response.ok)throw new Error('HTTP '+response.status);
     const d=await response.json();
     if(!d||!Array.isArray(d.items))throw new Error('پاسخ محتوای منتشرشده معتبر نیست');
@@ -1484,38 +1537,11 @@ async function loadPublic(){
   }
   console.warn('Qotb public content could not be loaded:',lastError);
   const hint=document.getElementById('qa-hint');
-  if(hint)hint.textContent='دریافت محتوای سایت با مشکل روبه‌رو شد؛ اتصال اینترنت را بررسی و صفحه را دوباره باز کن.';
+  if(hint)hint.textContent='دریافت عکس‌ها با مشکل روبه‌رو شد؛ اتصال اینترنت را بررسی و صفحه را دوباره باز کن.';
   return false;
  })();
  try{return await publicLoadPromise}
  finally{publicLoadPromise=null}
-}
-async function loadPublicSection(section){
- if(section!=='gallery')return false;
- if(galleryLoaded)return true;
- const baseLoaded=await loadPublic();
- if(!baseLoaded)return false;
- if(galleryLoadPromise)return galleryLoadPromise;
- galleryLoadPromise=(async()=>{
-  const response=await apiFetch('/api/public-content?section=gallery',{cache:'default',mode:'cors',credentials:'omit'});
-  if(!response.ok)throw new Error('HTTP '+response.status);
-  const d=await response.json();
-  if(!d||!Array.isArray(d.items))throw new Error('پاسخ تصاویر گالری معتبر نیست');
-  for(const item of d.items){
-   const at=publishedItems.findIndex(existing=>existing.id===item.id);
-   if(at>=0)publishedItems[at]=item;
-   else publishedItems.push(item);
-  }
-  galleryLoaded=true;
-  applyPublished();
-  return true;
- })();
- try{return await galleryLoadPromise}
- catch(e){
-  console.warn('Qotb gallery content could not be loaded:',e);
-  return false;
- }
- finally{galleryLoadPromise=null}
 }
 function applyPublished(){
  /* هنگام ویرایش، هیچ دادهٔ منتشرشده‌ای نباید پیش‌نمایش را بازنویسی کند. */
@@ -1558,16 +1584,9 @@ let applyTimer=0;
 const observer=new MutationObserver(()=>{clearTimeout(applyTimer);applyTimer=setTimeout(applyPublished,220)});
 const observeRoot=document.querySelector('main')||document.body;
 observer.observe(observeRoot,{childList:true,subtree:true});
-const galleryPage=document.getElementById('gallery');
-if(galleryPage){
- const galleryPageObserver=new MutationObserver(()=>{
-  if(galleryPage.classList.contains('active'))loadPublicSection('gallery');
- });
- galleryPageObserver.observe(galleryPage,{attributes:true,attributeFilter:['class']});
- if(galleryPage.classList.contains('active'))loadPublicSection('gallery');
-}
 document.getElementById('qa-login-btn').addEventListener('click',loginNow);
 document.getElementById('qa-password').addEventListener('keydown',e=>{if(e.key==='Enter')loginNow()});
+document.getElementById('qa-optimize-gallery').addEventListener('click',optimizeGalleryImages);
 document.getElementById('qa-add-images').addEventListener('click',()=>{const page=document.querySelector('main > .page.active');const gallery=page?.querySelector('.blank-gallery');if(gallery){chooseImageList(gallery);openFilePicker();return}const product=page?.querySelector('.product-detail-photo');if(product){chooseImageList(product);openFilePicker();return}document.getElementById('qa-hint').textContent='برای افزودن عکس، ابتدا وارد صفحه گالری یا صفحه یکی از محصولات شو.'});
 document.getElementById('qa-draft').addEventListener('click',()=>save('draft'));
 document.getElementById('qa-publish').addEventListener('click',()=>{if(confirm('این تغییر برای همه بازدیدکنندگان سایت نمایش داده شود؟'))save('published')});
