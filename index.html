@@ -654,6 +654,10 @@ main > .page.qotb-about{padding-top:0!important;margin-top:0!important;}
 #qotb-photo-lightbox .qotb-lightbox-prev{right:auto!important;left:16px!important}
 .page.active{animation:qotbTurnIncoming .38s ease both}
 @media(prefers-reduced-motion:reduce){.qotb-page-turn-sheet.turn-next.is-turning,.qotb-page-turn-sheet.turn-prev.is-turning,.qotb-product-stage .qotb-gallery-main.qotb-page-turn-in,#qotb-photo-lightbox>img.qotb-lightbox-turn-in,.page.active{animation:none!important}}
+
+@keyframes qotbSectionTurn{0%{opacity:0;transform:perspective(1500px) rotateY(-72deg) translateX(22px);transform-origin:right center}65%{opacity:1}100%{opacity:1;transform:perspective(1500px) rotateY(0) translateX(0);transform-origin:right center}}
+.page.active{animation:qotbSectionTurn .58s cubic-bezier(.2,.72,.25,1) both!important;backface-visibility:hidden;transform-style:preserve-3d}
+@media(prefers-reduced-motion:reduce){.page.active{animation:none!important}}
 </style>
 </head><body>
 <header><div class="container nav">
