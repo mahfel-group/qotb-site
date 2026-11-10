@@ -616,7 +616,7 @@ main > .page.qotb-about{padding-top:0!important;margin-top:0!important;}
 @keyframes qotbPhotoEnter{from{opacity:.35;transform:scale(.985)}to{opacity:1;transform:scale(1)}}
 @keyframes qotbLightboxEnter{from{opacity:0}to{opacity:1}}
 @keyframes qotbLightboxImageEnter{from{opacity:0;transform:scale(.975)}to{opacity:1;transform:scale(1)}}
-.page.active{animation:qotbPageEnter .38s cubic-bezier(.22,.61,.36,1) both}
+
 .qotb-product-stage .qotb-gallery-main{animation:qotbPhotoEnter .32s ease both}
 #qotb-photo-lightbox.is-open{animation:qotbLightboxEnter .24s ease both}
 #qotb-photo-lightbox.is-open>img{animation:qotbLightboxImageEnter .32s cubic-bezier(.22,.61,.36,1) both}
@@ -640,24 +640,16 @@ main > .page.qotb-about{padding-top:0!important;margin-top:0!important;}
 @keyframes qotbTurnNext{0%{transform:perspective(1400px) rotateY(0);opacity:1}100%{transform:perspective(1400px) rotateY(-88deg);opacity:.15}}
 @keyframes qotbTurnPrev{0%{transform:perspective(1400px) rotateY(0);opacity:1}100%{transform:perspective(1400px) rotateY(88deg);opacity:.15}}
 @keyframes qotbTurnIncoming{0%{opacity:.25;transform:scale(.97)}100%{opacity:1;transform:scale(1)}}
-@keyframes qotbLightboxTurn{0%{opacity:.35;transform:perspective(1200px) rotateY(-12deg) scale(.98)}100%{opacity:1;transform:perspective(1200px) rotateY(0) scale(1)}}
 .qotb-product-stage{perspective:1400px!important}
-.qotb-page-turn-sheet{backface-visibility:hidden;box-shadow:0 5px 24px #0002}
-.qotb-page-turn-sheet.turn-next.is-turning{animation:qotbTurnNext .48s cubic-bezier(.55,.08,.68,.53) forwards}
-.qotb-page-turn-sheet.turn-prev.is-turning{animation:qotbTurnPrev .48s cubic-bezier(.55,.08,.68,.53) forwards}
-.qotb-product-stage .qotb-gallery-main.qotb-page-turn-in{animation:qotbTurnIncoming .48s ease both}
-#qotb-photo-lightbox>img.qotb-lightbox-turn-in{animation:qotbLightboxTurn .36s ease both}
 .qotb-photo-arrow,.qotb-lightbox-arrow{transform:translateY(-50%)!important}
 .qotb-product-carousel .qotb-photo-next{left:auto!important;right:10px!important}
 .qotb-product-carousel .qotb-photo-prev{right:auto!important;left:10px!important}
 #qotb-photo-lightbox .qotb-lightbox-next{left:auto!important;right:16px!important}
 #qotb-photo-lightbox .qotb-lightbox-prev{right:auto!important;left:16px!important}
-.page.active{animation:qotbTurnIncoming .38s ease both}
+
 @media(prefers-reduced-motion:reduce){.qotb-page-turn-sheet.turn-next.is-turning,.qotb-page-turn-sheet.turn-prev.is-turning,.qotb-product-stage .qotb-gallery-main.qotb-page-turn-in,#qotb-photo-lightbox>img.qotb-lightbox-turn-in,.page.active{animation:none!important}}
 
-@keyframes qotbSectionTurn{0%{opacity:0;transform:perspective(1500px) rotateY(-72deg) translateX(22px);transform-origin:right center}65%{opacity:1}100%{opacity:1;transform:perspective(1500px) rotateY(0) translateX(0);transform-origin:right center}}
-.page.active{animation:qotbSectionTurn .58s cubic-bezier(.2,.72,.25,1) both!important;backface-visibility:hidden;transform-style:preserve-3d}
-@media(prefers-reduced-motion:reduce){.page.active{animation:none!important}}
+
 </style>
 </head><body>
 <header><div class="container nav">
@@ -1226,14 +1218,19 @@ function openQotbLightbox(images,index){
  const prev=modal.querySelector('.qotb-lightbox-prev');
  const next=modal.querySelector('.qotb-lightbox-next');
  const count=modal.querySelector('.qotb-lightbox-count');
- const paint=()=>{
-  const oldSrc=photo.src;
-  const nextSrc=list[active];
-  photo.src=nextSrc;
+ const paint=(direction='next')=>{
+  const oldPhoto=photo.cloneNode(false);
+  oldPhoto.src=photo.src;
+  oldPhoto.alt='';
+  oldPhoto.style.cssText='position:absolute;inset:0;width:100%;height:100%;max-width:none!important;max-height:none!important;object-fit:contain;z-index:5;pointer-events:none;transform-origin:'+(direction==='next'?'left center':'right center')+';';
+  photo.src=list[active];
   photo.alt='تصویر '+(active+1)+' از '+list.length;
-  photo.classList.remove('qotb-lightbox-turn-in');
-  void photo.offsetWidth;
-  photo.classList.add('qotb-lightbox-turn-in');
+  photo.style.position='relative';
+  photo.style.zIndex='1';
+  modal.appendChild(oldPhoto);
+  oldPhoto.className='qotb-lightbox-page-sheet '+(direction==='next'?'turn-next':'turn-prev');
+  requestAnimationFrame(()=>oldPhoto.classList.add('is-turning'));
+  window.setTimeout(()=>oldPhoto.remove(),520);
   count.textContent=(active+1)+' / '+list.length;
   prev.hidden=list.length<2;
   next.hidden=list.length<2;
@@ -1241,7 +1238,7 @@ function openQotbLightbox(images,index){
  const move=delta=>{
   if(list.length<2)return;
   active=(active+delta+list.length)%list.length;
-  paint();
+  paint(delta>0?'next':'prev');
  };
  const close=()=>{
   modal.classList.remove('is-open');
@@ -1355,10 +1352,10 @@ function renderImageList(target,images,admin){
    sheet.className='qotb-page-turn-sheet '+(direction==='next'?'turn-next':'turn-prev');
    sheet.removeAttribute('role');sheet.removeAttribute('tabindex');
    sheet.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;z-index:4;pointer-events:none;transform-origin:'+(direction==='next'?'left center':'right center')+';';
-   stage.appendChild(sheet);
    showPhoto();
    const incoming=stage.querySelector('.qotb-gallery-main');
    if(incoming)incoming.style.opacity='0';
+   stage.appendChild(sheet);
    requestAnimationFrame(()=>{sheet.classList.add('is-turning');if(incoming)incoming.classList.add('qotb-page-turn-in')});
    window.setTimeout(()=>{sheet.remove();if(incoming){incoming.style.opacity='';incoming.classList.remove('qotb-page-turn-in')}stage.dataset.turning='0'},520);
   }else showPhoto();
@@ -1589,3 +1586,18 @@ if(manage){if(token){showEditor();loadPublic()}else login.style.display='flex'}
 else loadPublic();
 })();
 </script></body></html>
+
+/* Page-turn effects are limited to photos; section navigation stays still. */
+@keyframes qotbPhotoSheetNext{0%{transform:perspective(1400px) rotateY(0);opacity:1}100%{transform:perspective(1400px) rotateY(-88deg);opacity:.08}}
+@keyframes qotbPhotoSheetPrev{0%{transform:perspective(1400px) rotateY(0);opacity:1}100%{transform:perspective(1400px) rotateY(88deg);opacity:.08}}
+.qotb-page-turn-sheet,.qotb-lightbox-page-sheet{backface-visibility:hidden;box-shadow:0 5px 24px #0003}
+.qotb-page-turn-sheet.turn-next.is-turning,.qotb-lightbox-page-sheet.turn-next.is-turning{animation:qotbPhotoSheetNext .5s cubic-bezier(.55,.08,.68,.53) forwards}
+.qotb-page-turn-sheet.turn-prev.is-turning,.qotb-lightbox-page-sheet.turn-prev.is-turning{animation:qotbPhotoSheetPrev .5s cubic-bezier(.55,.08,.68,.53) forwards}
+.qotb-product-stage .qotb-gallery-main.qotb-page-turn-in{animation:qotbTurnIncoming .5s ease both}
+.qotb-photo-arrow,.qotb-lightbox-arrow{transform:translateY(-50%)!important}
+.qotb-product-carousel .qotb-photo-next{left:auto!important;right:10px!important}
+.qotb-product-carousel .qotb-photo-prev{right:auto!important;left:10px!important}
+#qotb-photo-lightbox .qotb-lightbox-next{left:auto!important;right:16px!important}
+#qotb-photo-lightbox .qotb-lightbox-prev{right:auto!important;left:16px!important}
+@media(prefers-reduced-motion:reduce){.qotb-page-turn-sheet,.qotb-lightbox-page-sheet,.qotb-product-stage .qotb-gallery-main.qotb-page-turn-in{animation:none!important}}
+</style>
